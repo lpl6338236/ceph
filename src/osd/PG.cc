@@ -4993,6 +4993,7 @@ ostream& operator<<(ostream& out, const PG& pg)
       out << ")";
     }
   }
+  pg.pg_log.get_log().print_rollback_info(out);
 
   if (!pg.backfill_targets.empty())
     out << " bft=" << pg.backfill_targets;

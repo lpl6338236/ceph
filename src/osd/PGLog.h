@@ -94,6 +94,18 @@ struct PGLog {
       index();
     }
 
+    void print_rollback_info(ostream& out) const {
+      out << " rollback_trimmed_to=" << rollback_info_trimmed_to
+	  << " riter=";
+      if (rollback_info_trimmed_to_riter == log.rend()) {
+	out << "rend";
+      } else {
+	if (rollback_info_trimmed_to_riter == log.rbegin())
+	  out << "rbegin=";
+	out << rollback_info_trimmed_to_riter->version;
+      }
+    }
+
     void split_into(
       pg_t child_pgid,
       unsigned split_bits,
