@@ -388,7 +388,7 @@ public:
 
   std::list<CDentry*>   projected_parent;   // for in-progress rename, (un)link, etc.
 
-  pair<int,int> inode_auth;
+  mds_authority_t inode_auth;
 
   // -- distributed state --
 protected:
@@ -455,6 +455,7 @@ public:
     parent(0),
     inode_auth(CDIR_AUTH_DEFAULT),
     replica_caps_wanted(0),
+    fcntl_locks(g_ceph_context), flock_locks(g_ceph_context),
     item_dirty(this), item_caps(this), item_open_file(this), item_dirty_parent(this),
     item_dirty_dirfrag_dir(this), 
     item_dirty_dirfrag_nest(this), 
@@ -567,7 +568,7 @@ public:
   void encode_store(bufferlist& bl);
   void decode_store(bufferlist::iterator& bl);
 
-  void encode_replica(int rep, bufferlist& bl) {
+  void encode_replica(mds_rank_t rep, bufferlist& bl) {
     assert(is_auth());
     
     // relax locks?
@@ -783,7 +784,7 @@ public:
 
 
   // -- authority --
-  pair<int,int> authority();
+  mds_authority_t authority();
 
 
   // -- auth pins --
