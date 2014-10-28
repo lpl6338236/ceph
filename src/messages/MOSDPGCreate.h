@@ -54,6 +54,12 @@ public:
       ::decode(mkpg, p);
       if (header.version >= 3) {
 	::decode(ctimes, p);
+      } else {
+	// To make other code simpler create map with time of 0,0 for each pg
+	for (map<pg_t,pg_create_t>::const_iterator i = mkpg.begin();
+	     i != mkpg.end(); ++i) {
+	  ctimes[i->first] = utime_t();
+	}
       }
     } else {
       __u32 n;

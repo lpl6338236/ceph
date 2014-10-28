@@ -6988,8 +6988,16 @@ void OSD::handle_pg_create(OpRequestRef op)
     history.last_epoch_clean = created;
     // Newly created PGs don't need to scrub immediately, so mark them
     // as scrubbed at creation time.
-    history.last_scrub_stamp = ci->second;
-    history.last_deep_scrub_stamp = ci->second;
+    if (ci->second == utime_t()) {
+      // Older OSD doesn't send ctime, so just do what we did before
+      // The repair_test.py can fail in a mixed cluster
+      utime_t now = ceph_clock_now(NULL);
+      history.last_scrub_stamp = now;
+      history.last_deep_scrub_stamp = now;
+    } else {
+      history.last_scrub_stamp = ci->second;
+      history.last_deep_scrub_stamp = ci->second;
+    }
     bool valid_history = project_pg_history(
       pgid, history, created, up, up_primary, acting, acting_primary);
     /* the pg creation message must have come from a mon and therefore
