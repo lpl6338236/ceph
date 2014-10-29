@@ -1604,7 +1604,32 @@ void Pipe::reader()
         if (in_q->can_fast_dispatch(m)) {
 	  reader_dispatching = true;
           pipe_lock.Unlock();
+
+	  const md_config_t *conf = msgr->cct->_conf;
+	  if (conf->ms_inject_fast_dispatch_delay_probability > 0 &&
+	      rand() % 10000 <
+	      conf->ms_inject_fast_dispatch_delay_probability * 10000.0) {
+	    double tt =
+	      (rand() % 100 + 1) * conf->ms_inject_fast_dispatch_delay_max / 100.0;
+	    ldout(msgr->cct, 10) << " pre-fast-dispatch sleep for " << tt << dendl;
+	    utime_t t;
+	    t.set_from_double(tt);
+	    t.sleep();
+	  }
+
           in_q->fast_dispatch(m);
+
+	  if (conf->ms_inject_fast_dispatch_delay_probability > 0 &&
+	      rand() % 10000 <
+	      conf->ms_inject_fast_dispatch_delay_probability * 10000.0) {
+	    double tt =
+	      (rand() % 100 + 1) * conf->ms_inject_fast_dispatch_delay_max / 100.0;
+	    ldout(msgr->cct, 10) << " post-fast-dispatch sleep for " << tt << dendl;
+	    utime_t t;
+	    t.set_from_double(tt);
+	    t.sleep();
+	  }
+
           pipe_lock.Lock();
 	  reader_dispatching = false;
 	  if (state == STATE_CLOSED ||
