@@ -1195,6 +1195,12 @@ void MDS::handle_mds_map(MMDSMap *m)
   whoami = mdsmap->get_rank_gid(mds_gid_t(monc->get_global_id()));
   state = mdsmap->get_state_gid(mds_gid_t(monc->get_global_id()));
   incarnation = mdsmap->get_inc_gid(mds_gid_t(monc->get_global_id()));
+  if (incarnation < 0) {
+    dout(0) << "handle_mds_map: failed to get incarnation, killing myself" << dendl;
+    suicide();
+    goto out;
+  }
+
   dout(10) << "map says i am " << addr << " mds." << whoami << "." << incarnation
 	   << " state " << ceph_mds_state_name(state) << dendl;
 

@@ -1736,7 +1736,7 @@ public:
   void dump_statfs_ops(Formatter *fmt) const;
 
   int get_client_incarnation() const { return client_inc.read(); }
-  void set_client_incarnation(int inc) { client_inc.set(inc); }
+  void set_client_incarnation(AO_t inc) { client_inc.set(inc); }
 
   /// wait for epoch; true if we already have it
   bool wait_for_map(epoch_t epoch, Context *c, int err=0);
