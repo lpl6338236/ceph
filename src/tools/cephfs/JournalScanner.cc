@@ -143,7 +143,7 @@ int JournalScanner::scan_events()
     << header->trimmed_pos << " 0x"
     << header->expire_pos << " 0x"
     << header->write_pos << std::dec << dendl;
-  dout(10) << "Starting journal scan from offset 0x" << std::hex << read_offset << std::dec << dendl;
+  dout(10) << "Starting journal scan from offset 0x" << std::hex << header->expire_pos << std::dec << dendl;
 
   // TODO also check for extraneous objects before the trimmed pos or after the write pos,
   // which would indicate a bogus header.
@@ -152,10 +152,17 @@ int JournalScanner::scan_events()
   bool gap = false;
   uint64_t gap_start = -1;
   for (uint64_t obj_offset = (read_offset / object_size); ; obj_offset++) {
-    // Read this journal segment
+
+    uint64_t offset_in_obj = 0;
+    if (obj_offset * object_size < header->expire_pos) {
+      offset_in_obj = header->expire_pos - obj_offset * object_size;
+    }
+
+    // Read this journal object into read_buf
     bufferlist this_object;
     std::string const oid = obj_name(obj_offset);
-    int r = io.read(oid, this_object, INT_MAX, 0);
+    dout(4) << "Reading journal object " << oid << dendl;
+    int r = io.read(oid, this_object, INT_MAX, offset_in_obj);
 
     // Handle absent journal segments
     if (r < 0) {
@@ -177,93 +184,99 @@ int JournalScanner::scan_events()
       this_object.copy(0, this_object.length(), read_buf);
     }
 
-    if (gap) {
-      // No valid data at the current read offset, scan forward until we find something valid looking
-      // or have to drop out to load another object.
-      dout(4) << "Searching for sentinel from 0x" << std::hex << read_offset
-              << ", 0x" << read_buf.length() << std::dec << " bytes available" << dendl;
+    JournalStream journal_stream2(JOURNAL_FORMAT_RESILIENT);
+    uint64_t need2;
 
-      do {
-        bufferlist::iterator p = read_buf.begin();
-        uint64_t candidate_sentinel;
-        ::decode(candidate_sentinel, p);
+    while((gap && read_buf.length() >= sizeof(JournalStream::sentinel)) ||
+        (!gap && journal_stream2.readable(read_buf, &need2))) {
+      if (gap) {
+        // No valid data at the current read offset, scan forward until we find something valid looking
+        // or have to drop out to load another object.
+        dout(4) << "Searching for sentinel from 0x" << std::hex << read_offset
+                << ", 0x" << read_buf.length() << std::dec << " bytes available" << dendl;
 
-        dout(4) << "Data at 0x" << std::hex << read_offset << " = 0x" << candidate_sentinel << std::dec << dendl;
+        do {
+          bufferlist::iterator p = read_buf.begin();
+          uint64_t candidate_sentinel;
+          ::decode(candidate_sentinel, p);
 
-        if (candidate_sentinel == JournalStream::sentinel) {
-          dout(4) << "Found sentinel at 0x" << std::hex << read_offset << std::dec << dendl;
-          ranges_invalid.push_back(Range(gap_start, read_offset));
-          gap = false;
-          break;
-        } else {
-          // No sentinel, discard this byte
-          read_buf.splice(0, 1);
-          read_offset += 1;
-        }
-      } while (read_buf.length() >= sizeof(JournalStream::sentinel));
-      dout(4) << "read_buf size is " << read_buf.length() << dendl;
-    } else {
-      dout(10) << "Parsing data, 0x" << std::hex << read_buf.length() << std::dec << " bytes available" << dendl;
-      while(true) {
-        // TODO: detect and handle legacy format journals: can do many things
-        // on them but on read errors have to give up instead of searching
-        // for sentinels.
-        JournalStream journal_stream(JOURNAL_FORMAT_RESILIENT);
-        bool readable = false;
-        try {
-          uint64_t need;
-          readable = journal_stream.readable(read_buf, &need);
-        } catch (buffer::error &e) {
-          readable = false;
-          dout(4) << "Invalid container encoding at 0x" << std::hex << read_offset << std::dec << dendl;
-          gap = true;
-          gap_start = read_offset;
-          read_buf.splice(0, 1);
-          read_offset += 1;
-          break;
-        }
+          dout(4) << "Data at 0x" << std::hex << read_offset << " = 0x" << candidate_sentinel << std::dec << dendl;
 
-        if (!readable) {
-          // Out of data, continue to read next object
-          break;
-        }
-
-        bufferlist le_bl;  //< Serialized LogEvent blob
-        dout(10) << "Attempting decode at 0x" << std::hex << read_offset << std::dec << dendl;
-        // This cannot fail to decode because we pre-checked that a serialized entry
-        // blob would be readable.
-        uint64_t start_ptr = 0;
-        uint64_t consumed = journal_stream.read(read_buf, &le_bl, &start_ptr);
-        dout(10) << "Consumed 0x" << std::hex << consumed << std::dec << " bytes" << dendl;
-        if (start_ptr != read_offset) {
-          derr << "Bad entry start ptr (0x" << std::hex << start_ptr << ") at 0x"
-              << read_offset << std::dec << dendl;
-          gap = true;
-          gap_start = read_offset;
-          // FIXME: given that entry was invalid, should we be skipping over it?
-          // maybe push bytes back onto start of read_buf and just advance one byte
-          // to start scanning instead.  e.g. if a bogus size value is found it can
-          // cause us to consume and thus skip a bunch of following valid events.
-          read_offset += consumed;
-          break;
-        }
-
-        LogEvent *le = LogEvent::decode(le_bl);
-        if (le) {
-          dout(10) << "Valid entry at 0x" << std::hex << read_offset << std::dec << dendl;
-
-          if (filter.apply(read_offset, *le)) {
-            events[read_offset] = EventRecord(le, consumed);
+          if (candidate_sentinel == JournalStream::sentinel) {
+            dout(4) << "Found sentinel at 0x" << std::hex << read_offset << std::dec << dendl;
+            ranges_invalid.push_back(Range(gap_start, read_offset));
+            gap = false;
+            break;
           } else {
-            delete le;
+            // No sentinel, discard this byte
+            read_buf.splice(0, 1);
+            read_offset += 1;
           }
-          events_valid.push_back(read_offset);
-          read_offset += consumed;
-        } else {
-          dout(10) << "Invalid entry at 0x" << std::hex << read_offset << std::dec << dendl;
-          gap = true;
-          gap_start = read_offset;
-          read_offset += consumed;
+        } while (read_buf.length() >= sizeof(JournalStream::sentinel));
+        dout(4) << "read_buf size is " << read_buf.length() << dendl;
+      } else {
+        dout(10) << "Parsing data, 0x" << std::hex << read_buf.length() << std::dec << " bytes available" << dendl;
+        while(true) {
+          // TODO: detect and handle legacy format journals: can do many things
+          // on them but on read errors have to give up instead of searching
+          // for sentinels.
+          JournalStream journal_stream(JOURNAL_FORMAT_RESILIENT);
+          bool readable = false;
+          try {
+            uint64_t need;
+            readable = journal_stream.readable(read_buf, &need);
+          } catch (buffer::error &e) {
+            readable = false;
+            dout(4) << "Invalid container encoding at 0x" << std::hex << read_offset << std::dec << dendl;
+            gap = true;
+            gap_start = read_offset;
+            read_buf.splice(0, 1);
+            read_offset += 1;
+            break;
+          }
+
+          if (!readable) {
+            // Out of data, continue to read next object
+            break;
+          }
+
+          bufferlist le_bl;  //< Serialized LogEvent blob
+          dout(10) << "Attempting decode at 0x" << std::hex << read_offset << std::dec << dendl;
+          // This cannot fail to decode because we pre-checked that a serialized entry
+          // blob would be readable.
+          uint64_t start_ptr = 0;
+          uint64_t consumed = journal_stream.read(read_buf, &le_bl, &start_ptr);
+          dout(10) << "Consumed 0x" << std::hex << consumed << std::dec << " bytes" << dendl;
+          if (start_ptr != read_offset) {
+            derr << "Bad entry start ptr (0x" << std::hex << start_ptr << ") at 0x"
+                << read_offset << std::dec << dendl;
+            gap = true;
+            gap_start = read_offset;
+            // FIXME: given that entry was invalid, should we be skipping over it?
+            // maybe push bytes back onto start of read_buf and just advance one byte
+            // to start scanning instead.  e.g. if a bogus size value is found it can
+            // cause us to consume and thus skip a bunch of following valid events.
+            read_offset += consumed;
+            break;
+          }
+
+          LogEvent *le = LogEvent::decode(le_bl);
+          if (le) {
+            dout(10) << "Valid entry at 0x" << std::hex << read_offset << std::dec << dendl;
+
+            if (filter.apply(read_offset, *le)) {
+              events[read_offset] = EventRecord(le, consumed);
+            } else {
+              delete le;
+            }
+            events_valid.push_back(read_offset);
+            read_offset += consumed;
+          } else {
+            dout(10) << "Invalid entry at 0x" << std::hex << read_offset << std::dec << dendl;
+            gap = true;
+            gap_start = read_offset;
+            read_offset += consumed;
+          }
         }
       }
     }
