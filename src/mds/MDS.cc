@@ -217,7 +217,7 @@ public:
 bool MDS::asok_command(string command, cmdmap_t& cmdmap, string format,
 		    ostream& ss)
 {
-  dout(1) << "asok_command: " << command << dendl;
+  dout(1) << "asok_command: " << command << " (starting...)" << dendl;
 
   Formatter *f = new_formatter(format);
   if (!f)
@@ -302,6 +302,9 @@ bool MDS::asok_command(string command, cmdmap_t& cmdmap, string format,
   }
   f->flush(ss);
   delete f;
+
+  dout(1) << "asok_command: " << command << " (complete)" << dendl;
+
   return true;
 }
 
@@ -370,13 +373,15 @@ int MDS::_command_flush_journal(std::stringstream *ss)
   // I need to seal off the current segment, and then mark all previous segments
   // for expiry
   mdlog->start_new_segment();
+  int r = 0;
 
-  C_SaferCond flushed;
-  dout(5) << __func__ << ": flushing journal" << dendl;
-  mdlog->get_journaler()->flush(&flushed);
+  // Flush initially so that all the segments older than our new one
+  // will be elegible for expiry
+  C_SaferCond mdlog_flushed;
+  mdlog->flush();
+  mdlog->wait_for_safe(new MDSInternalContextWrapper(this, &mdlog_flushed));
   mds_lock.Unlock();
-  int r = flushed.wait();
-  dout(5) << __func__ << ": journal flushed: " << r << dendl;
+  r = mdlog_flushed.wait();
   mds_lock.Lock();
   if (r != 0) {
     *ss << "Error " << r << " (" << cpp_strerror(r) << ") while flushing journal";
@@ -404,19 +409,15 @@ int MDS::_command_flush_journal(std::stringstream *ss)
     }
   }
 
-  dout(5) << __func__ << ": expiry complete" << dendl;
+  dout(5) << __func__ << ": expiry complete, expire_pos/trim_pos is now " << std::hex <<
+    mdlog->get_journaler()->get_expire_pos() << "/" << 
+    mdlog->get_journaler()->get_trimmed_pos() << dendl;
 
-  // Another journal flush, to flush the trimming of it resulting from expiring segments.
-  C_SaferCond final_flushed;
-  dout(5) << __func__ << ": flushing journal" << dendl;
-  mdlog->get_journaler()->flush(&final_flushed);
-  mds_lock.Unlock();
-  r = final_flushed.wait();
-  mds_lock.Lock();
-  dout(5) << __func__ << ": journal flushed: " << r << dendl;
+  C_SaferCond wrote_head;
+  mdlog->get_journaler()->write_head(&wrote_head);
+  r = wrote_head.wait();
   if (r != 0) {
-    *ss << "Error " << r << " (" << cpp_strerror(r) << ") while flushing journal (final)";
-    return r;
+      *ss << "Error " << r << " (" << cpp_strerror(r) << ") while writing header";
   }
 
   return 0;
