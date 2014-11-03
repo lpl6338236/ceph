@@ -960,8 +960,8 @@ void PGMonitor::register_pg(pg_pool_t& pool, pg_t pgid, epoch_t epoch, bool new_
   pg_t parent;
   int split_bits = 0;
   bool parent_found = false;
-  parent = pgid;
   if (!new_pool) {
+    parent = pgid;
     while (1) {
       // remove most significant bit
       int msb = pool.calc_bits_of(parent.ps());
@@ -993,7 +993,7 @@ void PGMonitor::register_pg(pg_pool_t& pool, pg_t pgid, epoch_t epoch, bool new_
     utime_t now = ceph_clock_now(g_ceph_context);
     stats.last_scrub_stamp = now;
     stats.last_deep_scrub_stamp = now;
-    //stats.last_clean_scrub_stamp = now;
+    stats.last_clean_scrub_stamp = now;
   }
 
 
