@@ -927,6 +927,7 @@ public:
   void do_rule(int rule, int x, vector<int>& out, int maxout,
 	       const vector<__u32>& weight) const {
     Mutex::Locker l(mapper_lock);
+    std:: cout << name_map.find(1)->second<<"\n";
     int rawout[maxout];
     int scratch[maxout * 3];
     int numrep = crush_do_rule(crush, rule, x, rawout, maxout, &weight[0], weight.size(), scratch);
@@ -935,6 +936,18 @@ public:
     out.resize(numrep);
     for (int i=0; i<numrep; i++)
       out[i] = rawout[i];
+  }
+
+  void find_primary_with_hint_string(vector<int> *osds, int *primary, char* hint){
+	  std::map<int,string>::const_iterator p = name_map.begin();
+	  int hint_num = -1;
+	  while(p != name_map.end()){
+		  if (strcmp(p->second.c_str(), hint) == 0){
+			  hint_num = p->first;
+			  break;
+		  }
+	  }
+	  find_primary_with_hint(crush, osds->data(), osds->size(), primary, hint_num);
   }
 
   int read_from_file(const char *fn) {

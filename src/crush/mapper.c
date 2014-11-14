@@ -856,4 +856,3 @@ int crush_do_rule(const struct crush_map *map,
 	return result_len;
 }
 
-
