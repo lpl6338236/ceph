@@ -631,6 +631,7 @@ private:
 			vector<int> *acting, int *acting_primary, char* hint) const;
 
 public:
+<<<<<<< HEAD
 	/***
 	 * This is suitable only for looking at raw CRUSH outputs. It skips
 	 * applying the temp and up checks and should not be used
@@ -821,6 +822,200 @@ public:
 		pg_temp->clear();
 		primary_temp->clear();
 	}
+=======
+  /***
+   * This is suitable only for looking at raw CRUSH outputs. It skips
+   * applying the temp and up checks and should not be used
+   * by anybody for data mapping purposes.
+   * raw and primary must be non-NULL
+   */
+  int pg_to_osds(pg_t pg, vector<int> *raw, int *primary) const;
+  /// map a pg to its acting set. @return acting set size
+  int pg_to_acting_osds(const pg_t& pg, vector<int> *acting,
+                        int *acting_primary) const {
+    _pg_to_up_acting_osds(pg, NULL, NULL, acting, acting_primary);
+    return acting->size();
+  }
+  int pg_to_acting_osds(pg_t pg, vector<int>& acting) const {
+    int primary;
+    int r = pg_to_acting_osds(pg, &acting, &primary);
+    return r;
+  }
+  /**
+   * This does not apply temp overrides and should not be used
+   * by anybody for data mapping purposes. Specify both pointers.
+   */
+  void pg_to_raw_up(pg_t pg, vector<int> *up, int *primary) const;
+  /**
+   * map a pg to its acting set as well as its up set. You must use
+   * the acting set for data mapping purposes, but some users will
+   * also find the up set useful for things like deciding what to
+   * set as pg_temp.
+   * Each of these pointers must be non-NULL.
+   */
+  void pg_to_up_acting_osds(pg_t pg, vector<int> *up, int *up_primary,
+                            vector<int> *acting, int *acting_primary) const {
+    _pg_to_up_acting_osds(pg, up, up_primary, acting, acting_primary);
+  }
+  void pg_to_up_acting_osds(pg_t pg, vector<int>& up, vector<int>& acting) const {
+    int up_primary, acting_primary;
+    pg_to_up_acting_osds(pg, &up, &up_primary, &acting, &acting_primary);
+  }
+  bool pg_is_ec(pg_t pg) const {
+    map<int64_t, pg_pool_t>::const_iterator i = pools.find(pg.pool());
+    assert(i != pools.end());
+    return i->second.ec_pool();
+  }
+  bool get_primary_shard(const pg_t& pgid, spg_t *out) const {
+    map<int64_t, pg_pool_t>::const_iterator i = get_pools().find(pgid.pool());
+    if (i == get_pools().end()) {
+      return false;
+    }
+    if (!i->second.ec_pool()) {
+      *out = spg_t(pgid);
+      return true;
+    }
+    int primary;
+    vector<int> acting;
+    pg_to_acting_osds(pgid, &acting, &primary);
+    for (uint8_t i = 0; i < acting.size(); ++i) {
+      if (acting[i] == primary) {
+        *out = spg_t(pgid, shard_id_t(i));
+        return true;
+      }
+    }
+    return false;
+  }
+
+  int64_t lookup_pg_pool_name(const string& name) const {
+    map<string,int64_t>::const_iterator p = name_pool.find(name);
+    if (p == name_pool.end())
+      return -ENOENT;
+    return p->second;
+  }
+
+  int64_t get_pool_max() const {
+    return pool_max;
+  }
+  const map<int64_t,pg_pool_t>& get_pools() const {
+    return pools;
+  }
+  const string& get_pool_name(int64_t p) const {
+    map<int64_t, string>::const_iterator i = pool_name.find(p);
+    assert(i != pool_name.end());
+    return i->second;
+  }
+  bool have_pg_pool(int64_t p) const {
+    return pools.count(p);
+  }
+  const pg_pool_t* get_pg_pool(int64_t p) const {
+    map<int64_t, pg_pool_t>::const_iterator i = pools.find(p);
+    if (i != pools.end())
+      return &i->second;
+    return NULL;
+  }
+  unsigned get_pg_size(pg_t pg) const {
+    map<int64_t,pg_pool_t>::const_iterator p = pools.find(pg.pool());
+    assert(p != pools.end());
+    return p->second.get_size();
+  }
+  int get_pg_type(pg_t pg) const {
+    assert(pools.count(pg.pool()));
+    return pools.find(pg.pool())->second.get_type();
+  }
+
+
+  pg_t raw_pg_to_pg(pg_t pg) const {
+    assert(pools.count(pg.pool()));
+    return pools.find(pg.pool())->second.raw_pg_to_pg(pg);
+  }
+
+  // pg -> acting primary osd
+  int get_pg_acting_primary(pg_t pg) const {
+    vector<int> group;
+    int nrep = pg_to_acting_osds(pg, group);
+    if (nrep > 0)
+      return group[0];
+    return -1;  // we fail!
+  }
+  int get_pg_acting_tail(pg_t pg) const {
+    vector<int> group;
+    int nrep = pg_to_acting_osds(pg, group);
+    if (nrep > 0)
+      return group[group.size()-1];
+    return -1;  // we fail!
+  }
+
+
+  /* what replica # is a given osd? 0 primary, -1 for none. */
+  static int calc_pg_rank(int osd, const vector<int>& acting, int nrep=0);
+  static int calc_pg_role(int osd, const vector<int>& acting, int nrep=0);
+  static bool primary_changed(
+    int oldprimary,
+    const vector<int> &oldacting,
+    int newprimary,
+    const vector<int> &newacting);
+  
+  /* rank is -1 (stray), 0 (primary), 1,2,3,... (replica) */
+  int get_pg_acting_rank(pg_t pg, int osd) const {
+    vector<int> group;
+    int nrep = pg_to_acting_osds(pg, group);
+    return calc_pg_rank(osd, group, nrep);
+  }
+  /* role is -1 (stray), 0 (primary), 1 (replica) */
+  int get_pg_acting_role(const pg_t& pg, int osd) const {
+    vector<int> group;
+    int nrep = pg_to_acting_osds(pg, group);
+    return calc_pg_role(osd, group, nrep);
+  }
+
+  bool osd_is_valid_op_target(pg_t pg, int osd) const {
+    int primary;
+    vector<int> group;
+    int nrep = pg_to_acting_osds(pg, &group, &primary);
+    if (osd == primary)
+      return true;
+    if (pg_is_ec(pg))
+      return false;
+
+    return calc_pg_role(osd, group, nrep) >= 0;
+  }
+
+
+  /*
+   * handy helpers to build simple maps...
+   */
+  /**
+   * Build an OSD map suitable for basic usage. If **num_osd** is >= 0
+   * it will be initialized with the specified number of OSDs in a
+   * single host. If **num_osd** is < 0 the layout of the OSD map will 
+   * be built by reading the content of the configuration file.
+   *
+   * @param cct [in] in core ceph context 
+   * @param e [in] initial epoch
+   * @param fsid [in] id of the cluster
+   * @param num_osd [in] number of OSDs if >= 0 or read from conf if < 0
+   * @return **0** on success, negative errno on error.
+   */
+  int build_simple(CephContext *cct, epoch_t e, uuid_d &fsid,
+		   int num_osd, int pg_bits, int pgp_bits);
+  static int _build_crush_types(CrushWrapper& crush);
+  static int build_simple_crush_map(CephContext *cct, CrushWrapper& crush,
+				    int num_osd, ostream *ss);
+  static int build_simple_crush_map_from_conf(CephContext *cct,
+					      CrushWrapper& crush,
+					      ostream *ss);
+  static int build_simple_crush_rulesets(CephContext *cct, CrushWrapper& crush,
+					 const string& root,
+					 ostream *ss);
+
+  bool crush_ruleset_in_use(int ruleset) const;
+
+  void clear_temp() {
+    pg_temp->clear();
+    primary_temp->clear();
+  }
+>>>>>>> inktank/master
 
 private:
 	void print_osd_line(int cur, ostream *out, Formatter *f) const;
