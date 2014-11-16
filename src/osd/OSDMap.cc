@@ -1556,47 +1556,8 @@ void OSDMap::pg_to_raw_up(pg_t pg, vector<int> *up, int *primary) const {
 }
 
 ////This is only for providing hint for where to store the data
-void OSDMap::_pg_to_up_acting_osds(pg_t pg, vector<int> *up, int *up_primary,
-		vector<int> *acting, int *acting_primary, char* hint) const {
-	const pg_pool_t *pool = get_pg_pool(pg.pool());
-	if (!pool) {
-		if (up)
-			up->clear();
-		if (up_primary)
-			*up_primary = -1;
-		if (acting)
-			acting->clear();
-		if (acting_primary)
-			*acting_primary = -1;
-		return;
-	}
-	vector<int> raw;
-	vector<int> _up;
-	vector<int> _acting;
-	int _up_primary;
-	int _acting_primary;
-	ps_t pps;
-	_pg_to_osds(*pool, pg, &raw, &_up_primary, &pps);
-	_raw_to_up_osds(*pool, raw, &_up, &_up_primary);
-	_apply_primary_affinity(pps, *pool, &_up, &_up_primary, hint);
-	_get_temp_osds(*pool, pg, &_acting, &_acting_primary);
-	if (_acting.empty()) {
-		_acting = _up;
-		if (_acting_primary == -1) {
-			_acting_primary = _up_primary;
-		}
-	}
-	if (up)
-		up->swap(_up);
-	if (up_primary)
-		*up_primary = _up_primary;
-	if (acting)
-		acting->swap(_acting);
-	if (acting_primary)
-		*acting_primary = _acting_primary;
-}
 void OSDMap::_pg_to_up_acting_osds(const pg_t& pg, vector<int> *up,
-		int *up_primary, vector<int> *acting, int *acting_primary) const {
+		int *up_primary, vector<int> *acting, int *acting_primary, char* hint = NULL) const {
 	const pg_pool_t *pool = get_pg_pool(pg.pool());
 	if (!pool) {
 		if (up)
@@ -1617,7 +1578,8 @@ void OSDMap::_pg_to_up_acting_osds(const pg_t& pg, vector<int> *up,
 	ps_t pps;
 	_pg_to_osds(*pool, pg, &raw, &_up_primary, &pps);
 	_raw_to_up_osds(*pool, raw, &_up, &_up_primary);
-	_apply_primary_affinity(pps, *pool, &_up, &_up_primary);
+	if (hint != NULL) _apply_primary_affinity(pps, *pool, &_up, &_up_primary, hint);
+	else _apply_primary_affinity(pps, *pool, &_up, &_up_primary);
 	_get_temp_osds(*pool, pg, &_acting, &_acting_primary);
 	if (_acting.empty()) {
 		_acting = _up;

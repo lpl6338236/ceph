@@ -148,6 +148,6 @@ int crush_multiplication_is_unsafe(__u32  a, __u32 b)
 }
 
 
-//Hint is the bucket(mostly hosts) to be primary
+//HINT is the bucket(mostly hosts) to be primary
 void find_primary_with_hint(struct crush_map* crush, int *osds, int size, int *primary, int hint){
 }

@@ -29,7 +29,7 @@ namespace librbd {
     AioRequest(ImageCtx *ictx, const std::string &oid,
 	       uint64_t objectno, uint64_t off, uint64_t len,
 	       librados::snap_t snap_id, Context *completion,
-	       bool hide_enoent);
+	       bool hide_enoent, char* hint = NULL);
     virtual ~AioRequest();
 
     void complete(int r)
@@ -57,6 +57,7 @@ namespace librbd {
     AioCompletion *m_parent_completion;
     ceph::bufferlist m_read_data;
     bool m_hide_enoent;
+    char* hint;
   };
 
   class AioRead : public AioRequest {
@@ -97,7 +98,7 @@ namespace librbd {
 		  const ::SnapContext &snapc,
 		  librados::snap_t snap_id,
 		  Context *completion,
-		  bool hide_enoent);
+		  bool hide_enoent, char* hint = NULL);
     virtual ~AbstractWrite() {}
     virtual bool should_complete(int r);
     virtual int send();
@@ -152,12 +153,12 @@ namespace librbd {
 	     vector<pair<uint64_t,uint64_t> >& objectx, uint64_t object_overlap,
 	     const ceph::bufferlist &data, const ::SnapContext &snapc,
 	     librados::snap_t snap_id,
-	     Context *completion)
+	     Context *completion, char* hint = NULL)
       : AbstractWrite(ictx, oid,
 		      object_no, object_off, data.length(),
 		      objectx, object_overlap,
 		      snapc, snap_id,
-		      completion, false),
+		      completion, false, hint),
 	m_write_data(data) {
       guard_write();
       add_write_ops(m_write);

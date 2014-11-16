@@ -27,11 +27,11 @@ namespace librbd {
 			 uint64_t objectno, uint64_t off, uint64_t len,
 			 librados::snap_t snap_id,
 			 Context *completion,
-			 bool hide_enoent) :
+			 bool hide_enoent, char* hint = NULL) :
     m_ictx(ictx), m_ioctx(&ictx->data_ctx), m_oid(oid), m_object_no(objectno),
     m_object_off(off), m_object_len(len), m_snap_id(snap_id),
     m_completion(completion), m_parent_completion(NULL),
-    m_hide_enoent(hide_enoent) {}
+    m_hide_enoent(hide_enoent), hint(hint) {}
 
   AioRequest::~AioRequest() {
     if (m_parent_completion) {
@@ -117,9 +117,9 @@ namespace librbd {
 			       uint64_t object_overlap,
 			       const ::SnapContext &snapc, librados::snap_t snap_id,
 			       Context *completion,
-			       bool hide_enoent)
+			       bool hide_enoent, char* hint = NULL)
     : AioRequest(ictx, oid, object_no, object_off, len, snap_id, completion,
-		 hide_enoent),
+		 hide_enoent, hint),
       m_state(LIBRBD_AIO_WRITE_FLAT), m_snap_seq(snapc.seq.val)
   {
     m_object_image_extents = objectx;
@@ -231,7 +231,7 @@ namespace librbd {
     int r;
     assert(m_write.size());
     r = m_ioctx->aio_operate(m_oid, rados_completion, &m_write,
-			     m_snap_seq, m_snaps);
+			     m_snap_seq, m_snaps, hint);
     rados_completion->release();
     return r;
   }

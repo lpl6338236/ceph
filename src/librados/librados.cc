@@ -1283,7 +1283,7 @@ int librados::IoCtx::aio_operate(const std::string& oid, AioCompletion *c,
 
 int librados::IoCtx::aio_operate(const std::string& oid, AioCompletion *c,
 				 librados::ObjectWriteOperation *o,
-				 snap_t snap_seq, std::vector<snap_t>& snaps)
+				 snap_t snap_seq, std::vector<snap_t>& snaps, char* hint = NULL)
 {
   object_t obj(oid);
   vector<snapid_t> snv;
@@ -1292,7 +1292,7 @@ int librados::IoCtx::aio_operate(const std::string& oid, AioCompletion *c,
     snv[i] = snaps[i];
   SnapContext snapc(snap_seq, snv);
   return io_ctx_impl->aio_operate(obj, (::ObjectOperation*)o->impl, c->pc,
-				  snapc, 0);
+				  snapc, 0, hint);
 }
 
 int librados::IoCtx::aio_operate(const std::string& oid, AioCompletion *c,

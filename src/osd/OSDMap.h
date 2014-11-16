@@ -605,7 +605,7 @@ private:
 	void _apply_primary_affinity(ps_t seed, const pg_pool_t& pool,
 			vector<int> *osds, int *primary) const;
 	void _apply_primary_affinity(ps_t seed, const pg_pool_t& pool,
-			vector<int> *osds, int *primary, char* hint) const;
+			vector<int> *osds, int *primary, char* hint = NULL) const;
 
 	/// pg -> (up osd list)
 	void _raw_to_up_osds(const pg_pool_t& pool, const vector<int>& raw,
@@ -623,12 +623,9 @@ private:
 	/**
 	 *  map to up and acting. Fills in whatever fields are non-NULL.
 	 */
-	void _pg_to_up_acting_osds(const pg_t& pg, vector<int> *up, int *up_primary,
-			vector<int> *acting, int *acting_primary) const;
-
 	//This is only for providing hint for where to store the data
 	void _pg_to_up_acting_osds(pg_t pg, vector<int> *up, int *up_primary,
-			vector<int> *acting, int *acting_primary, char* hint) const;
+			vector<int> *acting, int *acting_primary, char* hint = NULL) const;
 
 public:
 	//This is only for providing hint for where to store the data
@@ -650,6 +647,8 @@ public:
    */
   int pg_to_osds(pg_t pg, vector<int> *raw, int *primary) const;
   /// map a pg to its acting set. @return acting set size
+  //HINT! TEST
+  /*
   int pg_to_acting_osds(const pg_t& pg, vector<int> *acting,
                         int *acting_primary) const {
     _pg_to_up_acting_osds(pg, NULL, NULL, acting, acting_primary);
@@ -660,6 +659,7 @@ public:
     int r = pg_to_acting_osds(pg, &acting, &primary);
     return r;
   }
+  */
   /**
    * This does not apply temp overrides and should not be used
    * by anybody for data mapping purposes. Specify both pointers.
@@ -676,9 +676,10 @@ public:
                             vector<int> *acting, int *acting_primary) const {
     _pg_to_up_acting_osds(pg, up, up_primary, acting, acting_primary);
   }
-  void pg_to_up_acting_osds(pg_t pg, vector<int>& up, vector<int>& acting) const {
-    int up_primary, acting_primary;
-    pg_to_up_acting_osds(pg, &up, &up_primary, &acting, &acting_primary);
+  //This is only for providing hint for where to store the data
+  void pg_to_up_acting_osds(pg_t pg, vector<int> *up, int *up_primary,
+                            vector<int> *acting, int *acting_primary, char* hint = NULL) const {
+    _pg_to_up_acting_osds(pg, up, up_primary, acting, acting_primary, hint);
   }
   bool pg_is_ec(pg_t pg) const {
     map<int64_t, pg_pool_t>::const_iterator i = pools.find(pg.pool());
@@ -750,6 +751,7 @@ public:
   }
 
   // pg -> acting primary osd
+  //SyntheticClient (ceph_syn)
   int get_pg_acting_primary(pg_t pg) const {
     vector<int> group;
     int nrep = pg_to_acting_osds(pg, group);
@@ -757,6 +759,7 @@ public:
       return group[0];
     return -1;  // we fail!
   }
+  //No Call
   int get_pg_acting_tail(pg_t pg) const {
     vector<int> group;
     int nrep = pg_to_acting_osds(pg, group);
@@ -776,12 +779,14 @@ public:
     const vector<int> &newacting);
   
   /* rank is -1 (stray), 0 (primary), 1,2,3,... (replica) */
+  //No Call
   int get_pg_acting_rank(pg_t pg, int osd) const {
     vector<int> group;
     int nrep = pg_to_acting_osds(pg, group);
     return calc_pg_rank(osd, group, nrep);
   }
   /* role is -1 (stray), 0 (primary), 1 (replica) */
+  //No Call
   int get_pg_acting_role(const pg_t& pg, int osd) const {
     vector<int> group;
     int nrep = pg_to_acting_osds(pg, group);

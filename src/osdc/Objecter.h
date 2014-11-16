@@ -1092,6 +1092,8 @@ public:
     int acting_primary;  ///< primary for last pg we mapped to based on the acting set
     int min_size;        ///< the min size of the pool when were were last mapped
 
+    char* hint;			 ///< The hint to choose the primary osd
+
     bool used_replica;
     bool paused;
 
@@ -1881,8 +1883,12 @@ public:
   ceph_tid_t mutate(const object_t& oid, const object_locator_t& oloc,
 	       ObjectOperation& op,
 	       const SnapContext& snapc, utime_t mtime, int flags,
-	       Context *onack, Context *oncommit, version_t *objver = NULL) {
+	       Context *onack, Context *oncommit, version_t *objver = NULL, char* hint) {
     Op *o = prepare_mutate_op(oid, oloc, op, snapc, mtime, flags, onack, oncommit, objver);
+
+    //This is for HINT!
+    if (hint != NULL) o->target.hint = hint;
+
     return op_submit(o);
   }
   Op *prepare_read_op(const object_t& oid, const object_locator_t& oloc,

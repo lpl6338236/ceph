@@ -2945,7 +2945,7 @@ reprotect_and_return_err:
   }
 
   int aio_write(ImageCtx *ictx, uint64_t off, size_t len, const char *buf,
-		AioCompletion *c)
+		AioCompletion *c, char* hint = NULL)
   {
     CephContext *cct = ictx->cct;
     ldout(cct, 20) << "aio_write " << ictx << " off = " << off << " len = "
@@ -3011,7 +3011,7 @@ reprotect_and_return_err:
 
 	AioWrite *req = new AioWrite(ictx, p->oid.name, p->objectno, p->offset,
 				     objectx, object_overlap,
-				     bl, snapc, snap_id, req_comp);
+				     bl, snapc, snap_id, req_comp, hint);
 	c->add_request();
 	r = req->send();
 	if (r < 0)
