@@ -1883,7 +1883,7 @@ public:
   ceph_tid_t mutate(const object_t& oid, const object_locator_t& oloc,
 	       ObjectOperation& op,
 	       const SnapContext& snapc, utime_t mtime, int flags,
-	       Context *onack, Context *oncommit, version_t *objver = NULL, char* hint) {
+	       Context *onack, Context *oncommit, version_t *objver = NULL, char* hint = NULL) {
     Op *o = prepare_mutate_op(oid, oloc, op, snapc, mtime, flags, onack, oncommit, objver);
 
     //This is for HINT!

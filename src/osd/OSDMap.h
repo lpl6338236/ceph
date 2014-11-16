@@ -670,15 +670,16 @@ public:
    * set as pg_temp.
    * Each of these pointers must be non-NULL.
    */
-  void pg_to_up_acting_osds(pg_t pg, vector<int> *up, int *up_primary,
-                            vector<int> *acting, int *acting_primary) const {
-    _pg_to_up_acting_osds(pg, up, up_primary, acting, acting_primary);
-  }
   //This is only for providing hint for where to store the data
   void pg_to_up_acting_osds(pg_t pg, vector<int> *up, int *up_primary,
                             vector<int> *acting, int *acting_primary, char* hint = NULL) const {
     _pg_to_up_acting_osds(pg, up, up_primary, acting, acting_primary, hint);
   }
+  void pg_to_up_acting_osds(pg_t pg, vector<int>& up, vector<int>& acting, char* hint = NULL) const {
+	  int up_primary, acting_primary;
+	  pg_to_up_acting_osds(pg, &up, &up_primary, &acting, &acting_primary, hint);
+  }
+
   bool pg_is_ec(pg_t pg) const {
     map<int64_t, pg_pool_t>::const_iterator i = pools.find(pg.pool());
     assert(i != pools.end());
