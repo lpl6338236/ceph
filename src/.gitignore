@@ -81,3 +81,4 @@ Makefile
 # old dir, may in use by older branches
 /leveldb
 /mkcephfs
+/Debug/
