@@ -605,7 +605,7 @@ private:
 	void _apply_primary_affinity(ps_t seed, const pg_pool_t& pool,
 			vector<int> *osds, int *primary) const;
 	void _apply_primary_affinity(ps_t seed, const pg_pool_t& pool,
-			vector<int> *osds, int *primary, char* hint = NULL) const;
+			vector<int> *osds, int *primary, char* hint) const;
 
 	/// pg -> (up osd list)
 	void _raw_to_up_osds(const pg_pool_t& pool, const vector<int>& raw,
@@ -624,19 +624,19 @@ private:
 	 *  map to up and acting. Fills in whatever fields are non-NULL.
 	 */
 	//This is only for providing hint for where to store the data
-	void _pg_to_up_acting_osds(pg_t pg, vector<int> *up, int *up_primary,
+	void _pg_to_up_acting_osds(const pg_t& pg, vector<int> *up, int *up_primary,
 			vector<int> *acting, int *acting_primary, char* hint = NULL) const;
 
 public:
 	//This is only for providing hint for where to store the data
-	int pg_to_acting_osds(const pg_t& pg, vector<int> *acting,
+	int pg_to_acting_osds_with_hint(const pg_t& pg, vector<int> *acting,
 			int *acting_primary, char* hint) const {
 		_pg_to_up_acting_osds(pg, NULL, NULL, acting, acting_primary, hint);
 		return acting->size();
 	}
-	int pg_to_acting_osds(pg_t pg, vector<int>& acting, char* hint) {
+	int pg_to_acting_osds_with_hint(pg_t pg, vector<int>& acting, char* hint) {
 		int primary;
-		int r = pg_to_acting_osds(pg, &acting, &primary, hint);
+		int r = pg_to_acting_osds_with_hint(pg, &acting, &primary, hint);
 		return r;
 	}
   /***

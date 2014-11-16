@@ -1440,7 +1440,7 @@ void OSDMap::_raw_to_up_osds(const pg_pool_t& pool, const vector<int>& raw,
 	}
 }
 
-//Hint is where to set the prime
+//HINT! is where to set the prime
 void OSDMap::_apply_primary_affinity(ps_t seed, const pg_pool_t& pool,
 		vector<int> *osds, int *primary, char* hint) const {
 	crush->find_primary_with_hint_string(osds, primary, hint);
