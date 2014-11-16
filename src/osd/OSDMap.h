@@ -648,7 +648,6 @@ public:
   int pg_to_osds(pg_t pg, vector<int> *raw, int *primary) const;
   /// map a pg to its acting set. @return acting set size
   //HINT! TEST
-  /*
   int pg_to_acting_osds(const pg_t& pg, vector<int> *acting,
                         int *acting_primary) const {
     _pg_to_up_acting_osds(pg, NULL, NULL, acting, acting_primary);
@@ -659,7 +658,6 @@ public:
     int r = pg_to_acting_osds(pg, &acting, &primary);
     return r;
   }
-  */
   /**
    * This does not apply temp overrides and should not be used
    * by anybody for data mapping purposes. Specify both pointers.
