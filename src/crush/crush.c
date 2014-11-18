@@ -157,10 +157,12 @@ void find_primary_with_hint(struct crush_map* crush, int *osds, int size, int *p
 int find_primary_recursively(struct crush_map* crush, struct crush_bucket* b, int* osds, int size,int *primary, int hint){
 	int candidate = -1;
 	int find_hint = 0;
-	for (int i = 0; i < b->size; i++){
+	int i = 0;
+	for (i = 0; i < b->size; i++){
 		if (b->items[i] == hint) find_hint = 1;
 		int leaf = 0;
-		for (int j = 0; j < size; j++){
+		int j = 0;
+		for (j = 0; j < size; j++){
 			if (b->items[i] == osds[j]){
 				candidate = osds[j];
 				leaf = 1;
