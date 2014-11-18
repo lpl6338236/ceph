@@ -2684,7 +2684,7 @@ reprotect_and_return_err:
     return ret;
   }
 
-  ssize_t write(ImageCtx *ictx, uint64_t off, size_t len, const char *buf)
+  ssize_t write(ImageCtx *ictx, uint64_t off, size_t len, const char *buf, char* hint)
   {
     utime_t start_time, elapsed;
     ldout(ictx->cct, 20) << "write " << ictx << " off = " << off << " len = "
@@ -2704,7 +2704,7 @@ reprotect_and_return_err:
 
     Context *ctx = new C_SafeCond(&mylock, &cond, &done, &ret);
     AioCompletion *c = aio_create_completion_internal(ctx, rbd_ctx_cb);
-    r = aio_write(ictx, off, mylen, buf, c);
+    r = aio_write(ictx, off, mylen, buf, c, hint);
     if (r < 0) {
       c->release();
       delete ctx;

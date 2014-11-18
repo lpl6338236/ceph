@@ -180,7 +180,7 @@ namespace librbd {
   ssize_t read(ImageCtx *ictx, uint64_t off, size_t len, char *buf);
   ssize_t read(ImageCtx *ictx, const vector<pair<uint64_t,uint64_t> >& image_extents,
 	       char *buf, bufferlist *pbl);
-  ssize_t write(ImageCtx *ictx, uint64_t off, size_t len, const char *buf);
+  ssize_t write(ImageCtx *ictx, uint64_t off, size_t len, const char *buf, char* hint = NULL);
   int discard(ImageCtx *ictx, uint64_t off, uint64_t len);
   int aio_write(ImageCtx *ictx, uint64_t off, size_t len, const char *buf,
 		AioCompletion *c, char* hint = NULL);
