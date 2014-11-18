@@ -1468,6 +1468,17 @@ extern "C" ssize_t rbd_write(rbd_image_t image, uint64_t ofs, size_t len,
   return r;
 }
 
+//For HINT!
+extern "C" ssize_t rbd_write_with_hint(rbd_image_t image, uint64_t ofs, size_t len,
+			     const char *buf, char* hint)
+{
+  librbd::ImageCtx *ictx = (librbd::ImageCtx *)image;
+  tracepoint(librbd, write_enter, ictx, ictx->name.c_str(), ictx->snap_name.c_str(), ictx->read_only, ofs, len, buf);
+  int r = librbd::write(ictx, ofs, len, buf, hint);
+  tracepoint(librbd, write_exit, r);
+  return r;
+}
+
 extern "C" int rbd_discard(rbd_image_t image, uint64_t ofs, uint64_t len)
 {
   librbd::ImageCtx *ictx = (librbd::ImageCtx *)image;
