@@ -1557,7 +1557,7 @@ void OSDMap::pg_to_raw_up(pg_t pg, vector<int> *up, int *primary) const {
 
 ////This is only for providing hint for where to store the data
 void OSDMap::_pg_to_up_acting_osds(const pg_t& pg, vector<int> *up,
-		int *up_primary, vector<int> *acting, int *acting_primary, char* hint = NULL) const {
+		int *up_primary, vector<int> *acting, int *acting_primary, char* hint) const {
 	const pg_pool_t *pool = get_pg_pool(pg.pool());
 	if (!pool) {
 		if (up)

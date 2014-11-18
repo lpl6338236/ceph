@@ -1283,7 +1283,7 @@ int librados::IoCtx::aio_operate(const std::string& oid, AioCompletion *c,
 
 int librados::IoCtx::aio_operate(const std::string& oid, AioCompletion *c,
 				 librados::ObjectWriteOperation *o,
-				 snap_t snap_seq, std::vector<snap_t>& snaps, char* hint = NULL)
+				 snap_t snap_seq, std::vector<snap_t>& snaps, char* hint)
 {
   object_t obj(oid);
   vector<snapid_t> snv;

@@ -1488,7 +1488,7 @@ extern "C" int rbd_aio_create_completion(void *cb_arg,
 }
 
 extern "C" int rbd_aio_write(rbd_image_t image, uint64_t off, size_t len,
-			     const char *buf, rbd_completion_t c, char* hint = NULL)
+			     const char *buf, rbd_completion_t c, char* hint)
 {
   librbd::ImageCtx *ictx = (librbd::ImageCtx *)image;
   librbd::RBD::AioCompletion *comp = (librbd::RBD::AioCompletion *)c;

@@ -2945,7 +2945,7 @@ reprotect_and_return_err:
   }
 
   int aio_write(ImageCtx *ictx, uint64_t off, size_t len, const char *buf,
-		AioCompletion *c, char* hint = NULL)
+		AioCompletion *c, char* hint)
   {
     CephContext *cct = ictx->cct;
     ldout(cct, 20) << "aio_write " << ictx << " off = " << off << " len = "

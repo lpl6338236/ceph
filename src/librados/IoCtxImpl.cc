@@ -580,7 +580,7 @@ int librados::IoCtxImpl::aio_operate_read(const object_t &oid,
 
 int librados::IoCtxImpl::aio_operate(const object_t& oid,
 				     ::ObjectOperation *o, AioCompletionImpl *c,
-				     const SnapContext& snap_context, int flags, char* hint = NULL)
+				     const SnapContext& snap_context, int flags, char* hint)
 {
   utime_t ut = ceph_clock_now(client->cct);
   /* can't write to a snapshot */
