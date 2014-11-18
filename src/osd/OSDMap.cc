@@ -1448,7 +1448,7 @@ void OSDMap::_apply_primary_affinity(ps_t seed, const pg_pool_t& pool,
 	vector<int> new_osds;
 	new_osds.push_back(*primary);
 	int sum = 0;
-	for (int i = 0; i < strlen(hint); i++){
+	for (unsigned int i = 0; i < strlen(hint); i++){
 		sum += hint[i];
 	}
 	int osd = sum % hint_size;
