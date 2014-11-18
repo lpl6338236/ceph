@@ -940,7 +940,6 @@ public:
     int scratch[maxout * 3];
     int numrep = crush_do_rule(crush, rule, x, rawout, maxout, &weight[0], weight.size(), scratch);
 
-    printf("=======================AAAAAAAAAAAAAAAAAAAAAAA======\n");
     /*
     char c = name_map.find(0)->second.at(0);
     printf("BBBBBBBBBB\n");
