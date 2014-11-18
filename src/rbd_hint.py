@@ -742,7 +742,7 @@ class Image(object):
         if not isinstance(data, str):
             raise TypeError('data must be a string')
         length = len(data)
-        ret = self.librbd.rbd_write(self.image, c_uint64(offset),
+        ret = self.librbd.rbd_write_with_hint(self.image, c_uint64(offset),
                                     c_size_t(length), c_char_p(data), c_char_p(hint))
         if ret == length:
             return ret
