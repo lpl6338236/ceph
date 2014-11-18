@@ -3606,6 +3606,7 @@ int OSDMonitor::prepare_new_pool(string& name, uint64_t auid,
     pi->flags |= pg_pool_t::FLAG_HASHPSPOOL;
 
   pi->size = size;
+  pi->hint_size = g_conf->osd_pool_hint_size;
   pi->min_size = min_size;
   pi->crush_ruleset = crush_ruleset;
   pi->expected_num_objects = expected_num_objects;

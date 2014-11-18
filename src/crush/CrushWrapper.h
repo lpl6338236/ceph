@@ -963,7 +963,10 @@ public:
 			  break;
 		  }
 	  }
-	  if (hint_num == -1) return;
+	  if (hint_num == -1) {
+		  *primary = osds->at(0);
+		  return;
+	  }
 	  find_primary_with_hint(crush, osds->data(), osds->size(), primary, hint_num);
   }
 

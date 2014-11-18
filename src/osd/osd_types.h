@@ -893,7 +893,7 @@ struct pg_pool_t {
 
   uint64_t flags;           ///< FLAG_*
   __u8 type;                ///< TYPE_*
-  __u8 size, min_size;      ///< number of osds in each pg
+  __u8 size, min_size, hint_size;      ///< number of osds in each pg
   __u8 crush_ruleset;       ///< crush placement rule set
   __u8 object_hash;         ///< hash mapping object name to ps
 private:
@@ -1027,6 +1027,7 @@ public:
 
   unsigned get_type() const { return type; }
   unsigned get_size() const { return size; }
+  unsigned get_hint_size() const { return hint_size; }
   unsigned get_min_size() const { return min_size; }
   int get_crush_ruleset() const { return crush_ruleset; }
   int get_object_hash() const { return object_hash; }

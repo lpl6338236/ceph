@@ -1444,6 +1444,20 @@ void OSDMap::_raw_to_up_osds(const pg_pool_t& pool, const vector<int>& raw,
 void OSDMap::_apply_primary_affinity(ps_t seed, const pg_pool_t& pool,
 		vector<int> *osds, int *primary, char* hint) const {
 	crush->find_primary_with_hint_string(osds, primary, hint);
+	unsigned hint_size = pool.get_hint_size();
+	vector<int> new_osds;
+	new_osds.push_back(*primary);
+	int sum = 0;
+	for (int i = 0; i < strlen(hint); i++){
+		sum += hint[i];
+	}
+	int osd = sum % hint_size();
+	for (int i = 0; i < hint_size - 1; i++, osd++){
+		if (osd != primary) new_osds.push_back(osds->at(osd % hint_size));
+		else new_osds.push_back(osds->at((osd++) % hint_size));
+	}
+	osds->clear();
+	*osds = new_osds;
 }
 
 void OSDMap::_apply_primary_affinity(ps_t seed, const pg_pool_t& pool,
@@ -1555,7 +1569,7 @@ void OSDMap::pg_to_raw_up(pg_t pg, vector<int> *up, int *primary) const {
 	_apply_primary_affinity(pps, *pool, up, primary);
 }
 
-////This is only for providing hint for where to store the data
+////This provides HINT! for where to store the data
 void OSDMap::_pg_to_up_acting_osds(const pg_t& pg, vector<int> *up,
 		int *up_primary, vector<int> *acting, int *acting_primary, char* hint) const {
 	const pg_pool_t *pool = get_pg_pool(pg.pool());
@@ -1578,7 +1592,10 @@ void OSDMap::_pg_to_up_acting_osds(const pg_t& pg, vector<int> *up,
 	ps_t pps;
 	_pg_to_osds(*pool, pg, &raw, &_up_primary, &pps);
 	_raw_to_up_osds(*pool, raw, &_up, &_up_primary);
-	if (hint != NULL) _apply_primary_affinity(pps, *pool, &_up, &_up_primary, hint);
+	if (hint != NULL) {
+		_up_primary = -1;
+		_apply_primary_affinity(pps, *pool, &_up, &_up_primary, hint);
+	}
 	else _apply_primary_affinity(pps, *pool, &_up, &_up_primary);
 	_get_temp_osds(*pool, pg, &_acting, &_acting_primary);
 	if (_acting.empty()) {
