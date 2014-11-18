@@ -207,6 +207,7 @@ extern void crush_destroy_bucket(struct crush_bucket *b);
 extern void crush_destroy_rule(struct crush_rule *r);
 extern void crush_destroy(struct crush_map *map);
 extern void find_primary_with_hint(struct crush_map* crush, int *osds, int size, int *primary, int hint);
+extern int find_primary_recursively(struct crush_map* crush, struct crush_bucket* b, int* osds, int size,int *primary, int hint);
 
 static inline int crush_calc_tree_node(int i)
 {
