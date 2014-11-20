@@ -1110,7 +1110,8 @@ public:
 	min_size(-1),
 	used_replica(false),
 	paused(false),
-	osd(-1)
+	osd(-1),
+	hint(NULL)
     {}
 
     void dump(Formatter *f) const;
