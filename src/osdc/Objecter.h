@@ -1108,10 +1108,10 @@ public:
 	up_primary(-1),
 	acting_primary(-1),
 	min_size(-1),
+	hint(NULL),
 	used_replica(false),
 	paused(false),
-	osd(-1),
-	hint(NULL)
+	osd(-1)
     {}
 
     void dump(Formatter *f) const;
