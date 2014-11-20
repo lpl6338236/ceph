@@ -124,8 +124,9 @@ class rbd_snap_info_t(Structure):
 def load_librbd():
     """
     Load the librbd shared library.
-    """
     librbd_path = find_library('rbd')
+    """
+    librbd_path = ".libs/librbd.so"
     if librbd_path:
         return CDLL(librbd_path)
 
@@ -357,6 +358,7 @@ class Image(object):
             raise TypeError('name must be a string')
         if snapshot is not None and not isinstance(snapshot, str):
             raise TypeError('snapshot must be a string or None')
+	print "before open"
         if read_only:
             if not hasattr(self.librbd, 'rbd_open_read_only'):
                 raise FunctionNotSupported('installed version of librbd does '
@@ -365,8 +367,10 @@ class Image(object):
                                                  byref(self.image),
                                                  c_char_p(snapshot))
         else:
+	    print "open write"
             ret = self.librbd.rbd_open(ioctx.io, c_char_p(name),
                                        byref(self.image), c_char_p(snapshot))
+	print "after open"
         if ret != 0:
             raise make_ex(ret, 'error opening image %s at snapshot %s' % (name, snapshot))
         self.closed = False
