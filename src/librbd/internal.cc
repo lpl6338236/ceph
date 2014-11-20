@@ -2704,6 +2704,7 @@ reprotect_and_return_err:
 
     Context *ctx = new C_SafeCond(&mylock, &cond, &done, &ret);
     AioCompletion *c = aio_create_completion_internal(ctx, rbd_ctx_cb);
+  printf("hint %s", hint);
     r = aio_write(ictx, off, mylen, buf, c, hint);
     if (r < 0) {
       c->release();
