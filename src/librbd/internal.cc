@@ -3009,6 +3009,7 @@ reprotect_and_return_err:
 			      objectx);
 	uint64_t object_overlap = ictx->prune_parent_extents(objectx, overlap);
 
+  printf("hint %s", hint);
 	AioWrite *req = new AioWrite(ictx, p->oid.name, p->objectno, p->offset,
 				     objectx, object_overlap,
 				     bl, snapc, snap_id, req_comp, hint);
