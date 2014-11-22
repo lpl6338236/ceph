@@ -230,7 +230,6 @@ namespace librbd {
       librados::Rados::aio_create_completion(this, NULL, rados_req_cb);
     int r;
     assert(m_write.size());
-  printf("hint %s", hint);
     r = m_ioctx->aio_operate(m_oid, rados_completion, &m_write,
 			     m_snap_seq, m_snaps, hint);
     rados_completion->release();

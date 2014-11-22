@@ -488,7 +488,7 @@ namespace librbd {
   }
 
   void ImageCtx::write_to_cache(object_t o, bufferlist& bl, size_t len,
-				uint64_t off, Context *onfinish) {
+				uint64_t off, Context *onfinish, char* hint) {
     snap_lock.get_read();
     ObjectCacher::OSDWrite *wr = object_cacher->prepare_write(snapc, bl,
 							      utime_t(), 0);
@@ -501,7 +501,7 @@ namespace librbd {
     wr->extents.push_back(extent);
     {
       Mutex::Locker l(cache_lock);
-      object_cacher->writex(wr, object_set, cache_lock, onfinish);
+      object_cacher->writex(wr, object_set, cache_lock, onfinish, hint);
     }
   }
 

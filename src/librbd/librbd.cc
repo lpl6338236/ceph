@@ -1474,7 +1474,6 @@ extern "C" ssize_t rbd_write_with_hint(rbd_image_t image, uint64_t ofs, size_t l
 {
   librbd::ImageCtx *ictx = (librbd::ImageCtx *)image;
   tracepoint(librbd, write_enter, ictx, ictx->name.c_str(), ictx->snap_name.c_str(), ictx->read_only, ofs, len, buf);
-  printf("hint %s", hint);
   int r = librbd::write(ictx, ofs, len, buf, hint);
   tracepoint(librbd, write_exit, r);
   return r;
