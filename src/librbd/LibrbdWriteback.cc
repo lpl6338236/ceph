@@ -137,7 +137,7 @@ namespace librbd {
 			       const SnapContext& snapc,
 			       const bufferlist &bl, utime_t mtime,
 			       uint64_t trunc_size, __u32 trunc_seq,
-			       Context *oncommit)
+			       Context *oncommit, char* hint)
   {
     m_ictx->snap_lock.get_read();
     librados::snap_t snap_id = m_ictx->snap_id;

@@ -35,7 +35,7 @@ namespace librbd {
     virtual ceph_tid_t write(const object_t& oid, const object_locator_t& oloc,
 			uint64_t off, uint64_t len, const SnapContext& snapc,
 			const bufferlist &bl, utime_t mtime, uint64_t trunc_size,
-			__u32 trunc_seq, Context *oncommit);
+			__u32 trunc_seq, Context *oncommit, char* hint = NULL);
 
     struct write_result_d {
       bool done;

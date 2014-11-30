@@ -74,7 +74,7 @@ ceph_tid_t FakeWriteback::write(const object_t& oid,
 			   const SnapContext& snapc,
 			   const bufferlist &bl, utime_t mtime,
 			   uint64_t trunc_size, __u32 trunc_seq,
-			   Context *oncommit)
+			   Context *oncommit, char* hint)
 {
   C_Delay *wrapper = new C_Delay(m_cct, oncommit, m_lock, off, NULL, m_delay_ns);
   m_finisher->queue(wrapper, 0);
