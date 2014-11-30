@@ -673,6 +673,7 @@ public:
   //This is only for providing hint for where to store the data
   void pg_to_up_acting_osds(pg_t pg, vector<int> *up, int *up_primary,
                             vector<int> *acting, int *acting_primary, char* hint = NULL) const {
+  printf("pg_to_up_acting_osd %s\n", hint);
     _pg_to_up_acting_osds(pg, up, up_primary, acting, acting_primary, hint);
   }
   void pg_to_up_acting_osds(pg_t pg, vector<int>& up, vector<int>& acting, char* hint = NULL) const {

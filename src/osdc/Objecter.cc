@@ -2017,6 +2017,7 @@ int Objecter::_calc_target(op_target_t *t, bool any_change)
 {
   assert(rwlock.is_locked());
 
+  printf("_calc_target %s\n", t->hint);
   bool is_read = t->flags & CEPH_OSD_FLAG_READ;
   bool is_write = t->flags & CEPH_OSD_FLAG_WRITE;
 
