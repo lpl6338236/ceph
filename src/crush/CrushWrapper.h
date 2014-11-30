@@ -956,7 +956,9 @@ public:
   void find_primary_with_hint_string(vector<int> *osds, int *primary, char* hint){
 	  std::map<int,string>::const_iterator p = name_map.begin();
 	  int hint_num = -1;
+	  printf("start\n");
 	  while(p != name_map.end()){
+		  cout << p->second<<std::endl;
 		  if (strcmp(p->second.c_str(), hint) == 0){
 			  hint_num = p->first;
 			  break;
