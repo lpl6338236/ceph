@@ -2396,6 +2396,7 @@ MOSDOp *Objecter::_prepare_osd_op(Op *op)
   op->target.paused = false;
   op->stamp = ceph_clock_now(cct);
 
+	  printf("mutate %s\n", op->target.hint);
   MOSDOp *m = new MOSDOp(client_inc.read(), op->tid, 
 			 op->target.target_oid, op->target.target_oloc,
 			 op->target.pgid,

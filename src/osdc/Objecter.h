@@ -1885,6 +1885,7 @@ public:
 	       ObjectOperation& op,
 	       const SnapContext& snapc, utime_t mtime, int flags,
 	       Context *onack, Context *oncommit, version_t *objver = NULL, char* hint = NULL) {
+	  printf("mutate %s\n", hint);
     Op *o = prepare_mutate_op(oid, oloc, op, snapc, mtime, flags, onack, oncommit, objver);
 
     //This is for HINT!
