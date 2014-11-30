@@ -957,18 +957,29 @@ public:
 
 	  int hint_num = -1;
 	  printf("start\n");
-	  for(std::map<int,string>::const_iterator p = name_map.begin(); p != name_map.end(); p++){
-		  cout << p->second<<std::endl;
-		  if (strcmp(p->second.c_str(), hint) == 0){
-			  hint_num = p->first;
-			  break;
-		  }
-	  }
 	  if (hint_num == -1) {
 		  *primary = osds->at(0);
 		  return;
 	  }
-	  find_primary_with_hint(crush, osds->data(), osds->size(), primary, hint_num);
+	  bool exist = false;
+      for(std::map<int,string>::const_iterator p = name_map.begin(); p != name_map.end();){
+              if (strcmp(p->second.c_str(), hint) == 0){
+            	  exist = true;
+                  break;
+              }
+      }
+      if (!exist){
+    	  *primary = osds->at(0);
+    	  return;
+      }
+
+	  for(int i = 0; i < crush->max_buckets; i++){
+		  if (strcmp(name_map.find(crush->buckets[i]->id)->second.c_str(), hint) == 0){
+			  hint_num = i;
+			  find_primary_with_hint(crush, osds->data(), osds->size(), primary, hint_num);
+			  return;
+		  }
+	  }
   }
 
   int read_from_file(const char *fn) {
