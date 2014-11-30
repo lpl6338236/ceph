@@ -36,7 +36,7 @@ class ObjecterWriteback : public WritebackHandler {
     return m_objecter->write_trunc(oid, oloc, off, len, snapc, bl, mtime, 0,
 				   trunc_size, trunc_seq, NULL,
 				   new C_OnFinisher(new C_Lock(m_lock, oncommit),
-						    m_finisher), hint);
+						    m_finisher), NULL, NULL, hint);
   }
 
   virtual ceph_tid_t lock(const object_t& oid, const object_locator_t& oloc, int op,
