@@ -151,11 +151,11 @@ int crush_multiplication_is_unsafe(__u32  a, __u32 b)
 //HINT is the bucket(mostly hosts) to be primary
 void find_primary_with_hint(struct crush_map* crush, int *osds, int size, int *primary, int hint){
 	struct crush_bucket* root = crush->buckets[0];
+	printf("find %d\n", hint);
 	find_primary_recursively(crush, root, osds, size, primary, hint);
 }
 
 int find_primary_recursively(struct crush_map* crush, struct crush_bucket* b, int* osds, int size,int *primary, int hint){
-	printf("find\n");
 	int candidate = -1;
 	int find_hint = 0;
 	int i = 0;
@@ -164,11 +164,13 @@ int find_primary_recursively(struct crush_map* crush, struct crush_bucket* b, in
 		int leaf = 0;
 		int j = 0;
 		for (j = 0; j < size; j++){
+			printf("%d\n",b->items[i]);
 			if (b->items[i] == osds[j]){
 				candidate = osds[j];
 				leaf = 1;
 			}
 		}
+			printf("can %d\n",candidate);
 
 		if (leaf == 0){
 			int r = find_primary_recursively(crush, crush->buckets[b->items[i]], osds, size, primary, hint);
