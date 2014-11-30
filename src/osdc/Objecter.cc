@@ -1729,6 +1729,7 @@ ceph_tid_t Objecter::_op_submit_with_budget(Op *op, RWLock::Context& lc, int *ct
 ceph_tid_t Objecter::_op_submit(Op *op, RWLock::Context& lc)
 {
   assert(rwlock.is_locked());
+	  printf("_op_submit %s\n", op->target.hint);
 
   ldout(cct, 10) << __func__ << " op " << op << dendl;
 
@@ -1853,7 +1854,9 @@ ceph_tid_t Objecter::_op_submit(Op *op, RWLock::Context& lc)
     op->tid = last_tid.inc();
   _session_op_assign(s, op);
 
+	  printf("need_send %d\n", need_send);
   if (need_send) {
+	  printf("Before _send_op %s\n", op->target.hint);
     _send_op(op, m);
   }
 
@@ -2396,7 +2399,7 @@ MOSDOp *Objecter::_prepare_osd_op(Op *op)
   op->target.paused = false;
   op->stamp = ceph_clock_now(cct);
 
-	  printf("mutate %s\n", op->target.hint);
+	  printf("_prepare_osd_op %s\n", op->target.hint);
   MOSDOp *m = new MOSDOp(client_inc.read(), op->tid, 
 			 op->target.target_oid, op->target.target_oloc,
 			 op->target.pgid,
