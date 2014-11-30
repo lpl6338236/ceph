@@ -76,18 +76,14 @@ uint32_t librados::IoCtxImpl::get_object_pg_hash_position(const std::string& oid
 
 void librados::IoCtxImpl::queue_aio_write(AioCompletionImpl *c)
 {
-	printf("After get\n");
   get();
   aio_write_list_lock.Lock();
-	printf("After Lock\n");
   assert(c->io == this);
   c->aio_write_seq = ++aio_write_seq;
   ldout(client->cct, 20) << "queue_aio_write " << this << " completion " << c
 			 << " write_seq " << aio_write_seq << dendl;
   aio_write_list.push_back(&c->aio_write_list_item);
-	printf("After push_back\n");
   aio_write_list_lock.Unlock();
-	printf("After Unlock\n");
 }
 
 void librados::IoCtxImpl::complete_aio_write(AioCompletionImpl *c)
