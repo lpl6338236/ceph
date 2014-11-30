@@ -802,7 +802,7 @@ void ObjectCacher::bh_read_finish(int64_t poolid, sobject_t oid, ceph_tid_t tid,
 }
 
 
-void ObjectCacher::bh_write(BufferHead *bh)
+void ObjectCacher::bh_write(BufferHead *bh, char* hint)
 {
   assert(lock.is_locked());
   ldout(cct, 7) << "bh_write " << *bh << dendl;
@@ -817,7 +817,7 @@ void ObjectCacher::bh_write(BufferHead *bh)
 				      bh->start(), bh->length(),
 				      bh->snapc, bh->bl, bh->last_write,
 				      bh->ob->truncate_size, bh->ob->truncate_seq,
-				      oncommit);
+				      oncommit, hint);
   ldout(cct, 20) << " tid " << tid << " on " << bh->ob->get_oid() << dendl;
 
   // set bh last_write_tid
@@ -1431,7 +1431,7 @@ int ObjectCacher::_wait_for_write(OSDWrite *wr, uint64_t len, ObjectSet *oset, M
     Context *fin = block_writes_upfront ?
       new C_Cond(&cond, &done, &ret) : onfreespace;
     assert(fin);
-    bool flushed = flush_set(oset, wr->extents, fin);
+    bool flushed = flush_set(oset, wr->extents, fin, wr->hint);
     assert(!flushed);   // we just dirtied it, and didn't drop our lock!
     ldout(cct, 10) << "wait_for_write waiting on write-thru of " << len << " bytes" << dendl;
     if (block_writes_upfront) {
@@ -1590,7 +1590,7 @@ void ObjectCacher::purge(Object *ob)
 // true if clean, already flushed.  
 // false if we wrote something.
 // be sloppy about the ranges and flush any buffer it touches
-bool ObjectCacher::flush(Object *ob, loff_t offset, loff_t length)
+bool ObjectCacher::flush(Object *ob, loff_t offset, loff_t length, char* hint)
 {
   assert(lock.is_locked());
   bool clean = true;
@@ -1608,7 +1608,7 @@ bool ObjectCacher::flush(Object *ob, loff_t offset, loff_t length)
     if (!bh->is_dirty()) {
       continue;
     }
-    bh_write(bh);
+    bh_write(bh, hint);
     clean = false;
   }
   return clean;
@@ -1676,7 +1676,7 @@ bool ObjectCacher::flush_set(ObjectSet *oset, Context *onfinish)
 
 // flush.  non-blocking, takes callback.
 // returns true if already flushed
-bool ObjectCacher::flush_set(ObjectSet *oset, vector<ObjectExtent>& exv, Context *onfinish)
+bool ObjectCacher::flush_set(ObjectSet *oset, vector<ObjectExtent>& exv, Context *onfinish, char* hint)
 {
   assert(lock.is_locked());
   assert(onfinish != NULL);
@@ -1703,7 +1703,7 @@ bool ObjectCacher::flush_set(ObjectSet *oset, vector<ObjectExtent>& exv, Context
 
     ldout(cct, 20) << "flush_set " << oset << " ex " << ex << " ob " << soid << " " << ob << dendl;
 
-    if (!flush(ob, ex.offset, ex.length)) {
+    if (!flush(ob, ex.offset, ex.length, hint)) {
       // we'll need to gather...
       ldout(cct, 10) << "flush_set " << oset << " will wait for ack tid " 
 		     << ob->last_write_tid << " on " << *ob << dendl;

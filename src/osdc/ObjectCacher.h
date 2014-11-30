@@ -71,11 +71,12 @@ class ObjectCacher {
     bufferlist bl;
     utime_t mtime;
     int flags;
-    OSDWrite(const SnapContext& sc, bufferlist& b, utime_t mt, int f) : snapc(sc), bl(b), mtime(mt), flags(f) {}
+    char* hint;
+    OSDWrite(const SnapContext& sc, bufferlist& b, utime_t mt, int f, char* hint = NULL) : snapc(sc), bl(b), mtime(mt), flags(f), hint(hint) {}
   };
 
-  OSDWrite *prepare_write(const SnapContext& sc, bufferlist &b, utime_t mt, int f) { 
-    return new OSDWrite(sc, b, mt, f); 
+  OSDWrite *prepare_write(const SnapContext& sc, bufferlist &b, utime_t mt, int f, char* hint = NULL) {
+    return new OSDWrite(sc, b, mt, f, hint);
   }
 
 
@@ -434,7 +435,7 @@ class ObjectCacher {
 
   // io
   void bh_read(BufferHead *bh);
-  void bh_write(BufferHead *bh);
+  void bh_write(BufferHead *bh, char* hint = NULL);
 
   void trim();
   void flush(loff_t amount=0);
@@ -450,7 +451,7 @@ class ObjectCacher {
    * @param len extent length, or 0 for entire object
    * @return true if object was already clean/flushed.
    */
-  bool flush(Object *o, loff_t off, loff_t len);
+  bool flush(Object *o, loff_t off, loff_t len, char* hint = NULL);
   loff_t release(Object *o);
   void purge(Object *o);
 
@@ -599,7 +600,7 @@ public:
   bool set_is_dirty_or_committing(ObjectSet *oset);
 
   bool flush_set(ObjectSet *oset, Context *onfinish=0);
-  bool flush_set(ObjectSet *oset, vector<ObjectExtent>& ex, Context *onfinish=0);
+  bool flush_set(ObjectSet *oset, vector<ObjectExtent>& ex, Context *onfinish=0, char* hint = NULL);
   void flush_all(Context *onfinish=0);
 
   void purge_set(ObjectSet *oset);

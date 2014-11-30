@@ -491,7 +491,7 @@ namespace librbd {
 				uint64_t off, Context *onfinish, char* hint) {
     snap_lock.get_read();
     ObjectCacher::OSDWrite *wr = object_cacher->prepare_write(snapc, bl,
-							      utime_t(), 0);
+							      utime_t(), 0, hint);
     snap_lock.put_read();
     ObjectExtent extent(o, 0, off, len, 0);
     extent.oloc.pool = data_ctx.get_id();
@@ -501,7 +501,7 @@ namespace librbd {
     wr->extents.push_back(extent);
     {
       Mutex::Locker l(cache_lock);
-      object_cacher->writex(wr, object_set, cache_lock, onfinish, hint);
+      object_cacher->writex(wr, object_set, cache_lock, onfinish);
     }
   }
 
