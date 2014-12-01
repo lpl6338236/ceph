@@ -2524,6 +2524,7 @@ int OSDMap::build_simple(CephContext *cct, epoch_t e, uuid_d &fsid, int nosd,
 		if (cct->_conf->osd_pool_default_flag_hashpspool)
 			pools[pool].flags |= pg_pool_t::FLAG_HASHPSPOOL;
 		pools[pool].size = cct->_conf->osd_pool_default_size;
+		pools[pool].hint_size = cct->_conf->osd_pool_default_hint_size;
 		pools[pool].min_size = cct->_conf->get_osd_pool_default_min_size();
 		pools[pool].crush_ruleset = default_replicated_ruleset;
 		pools[pool].object_hash = CEPH_STR_HASH_RJENKINS;

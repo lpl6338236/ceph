@@ -1016,6 +1016,7 @@ void pg_pool_t::encode(bufferlist& bl, uint64_t features) const
     ::encode(struct_v, bl);
     ::encode(type, bl);
     ::encode(size, bl);
+    ::encode(hint_size, bl);
     ::encode(crush_ruleset, bl);
     ::encode(object_hash, bl);
     ::encode(pg_num, bl);
@@ -1044,6 +1045,7 @@ void pg_pool_t::encode(bufferlist& bl, uint64_t features) const
     ::encode(struct_v, bl);
     ::encode(type, bl);
     ::encode(size, bl);
+    ::encode(hint_size, bl);
     ::encode(crush_ruleset, bl);
     ::encode(object_hash, bl);
     ::encode(pg_num, bl);
@@ -1071,6 +1073,7 @@ void pg_pool_t::encode(bufferlist& bl, uint64_t features) const
     ENCODE_START(14, 5, bl);
     ::encode(type, bl);
     ::encode(size, bl);
+    ::encode(hint_size, bl);
     ::encode(crush_ruleset, bl);
     ::encode(object_hash, bl);
     ::encode(pg_num, bl);
@@ -1114,6 +1117,7 @@ void pg_pool_t::encode(bufferlist& bl, uint64_t features) const
   ENCODE_START(17, 5, bl);
   ::encode(type, bl);
   ::encode(size, bl);
+  ::encode(hint_size, bl);
   ::encode(crush_ruleset, bl);
   ::encode(object_hash, bl);
   ::encode(pg_num, bl);
@@ -1161,6 +1165,7 @@ void pg_pool_t::decode(bufferlist::iterator& bl)
   DECODE_START_LEGACY_COMPAT_LEN(17, 5, 5, bl);
   ::decode(type, bl);
   ::decode(size, bl);
+  ::decode(hint_size, bl);
   ::decode(crush_ruleset, bl);
   ::decode(object_hash, bl);
   ::decode(pg_num, bl);

@@ -3606,7 +3606,7 @@ int OSDMonitor::prepare_new_pool(string& name, uint64_t auid,
     pi->flags |= pg_pool_t::FLAG_HASHPSPOOL;
 
   pi->size = size;
-  pi->hint_size = g_conf->osd_pool_hint_size;
+  pi->hint_size = g_conf->osd_pool_default_hint_size;
   pi->min_size = min_size;
   pi->crush_ruleset = crush_ruleset;
   pi->expected_num_objects = expected_num_objects;
@@ -3766,6 +3766,12 @@ int OSDMonitor::prepare_command_pool_set(map<string,cmd_vartype> &cmdmap,
     p.size = n;
     if (n < p.min_size)
       p.min_size = n;
+  } else if (var == "hint_size"){
+	  if (n < p.size){
+		  ss << "hint_size can't be less than size";
+		  return -EINVAL;
+	  }
+	  p.hint_size = n;
   } else if (var == "min_size") {
     if (interr.length()) {
       ss << "error parsing integer value '" << val << "': " << interr;
