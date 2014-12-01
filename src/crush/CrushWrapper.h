@@ -954,9 +954,9 @@ public:
     	  *primary = osds->at(0);
     	  return;
       }
-      unsigned int hint_pos = (unsigned int)(-1 - get_item_id(hint));
+      int hint_pos = get_item_id(hint);
       printf("pos %d\n",hint_pos);
-      unsigned int max_buckets = crush->max_buckets;
+      int max_buckets = crush->max_buckets;
 	  if ((hint_pos > max_buckets) || (crush->buckets[hint_pos] == NULL)) {
 		  *primary = osds->at(0);
 		  return;
