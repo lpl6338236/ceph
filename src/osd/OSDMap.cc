@@ -1446,6 +1446,7 @@ void OSDMap::_apply_primary_affinity(ps_t seed, const pg_pool_t& pool,
 	crush->find_primary_with_hint_string(osds, primary, hint);
 	  printf("found primary %d %s\n", *primary, hint);
 	int hint_size = pool.get_hint_size();
+	  printf("hint_size %d\n", hint_size);
 	vector<int> new_osds;
 	new_osds.push_back(*primary);
 	int sum = 0;
@@ -1454,6 +1455,7 @@ void OSDMap::_apply_primary_affinity(ps_t seed, const pg_pool_t& pool,
 	}
 	int osd = sum % hint_size;
 	for (int i = 0; i < hint_size - 1; i++, osd++){
+		printf("%d,%d\n", i, osds->at(osd % hint_size));
 		if (osd != *primary) new_osds.push_back(osds->at(osd % hint_size));
 		else new_osds.push_back(osds->at((++osd) % hint_size));
 	}
