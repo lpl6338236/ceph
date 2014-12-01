@@ -241,6 +241,8 @@ struct ceph_osd_request_head {
       ::encode(oloc, payload);
       ::encode(pgid, payload);
       ::encode(oid, payload);
+      //HINT! is encoded here
+      ::encode(hint, payload);
 
       __u16 num_ops = ops.size();
       ::encode(num_ops, payload);
@@ -317,6 +319,8 @@ struct ceph_osd_request_head {
       }
 
       ::decode(oid, p);
+      //HINT! is decoded here
+      ::decode(hint, p);
 
       //::decode(ops, p);
       __u16 num_ops;

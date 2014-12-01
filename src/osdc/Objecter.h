@@ -2143,7 +2143,10 @@ public:
     ops[i].op.extent.truncate_seq = trunc_seq;
     ops[i].indata = bl;
     Op *o = new Op(oid, oloc, ops, flags | global_op_flags.read() | CEPH_OSD_FLAG_WRITE, onack, oncommit, objver);
-    if (hint != NULL) o->target.hint = hint;
+    if (hint != NULL) {
+    	o->target.hint = hint;
+    	o->target.flags |= CEPH_OSD_FLAG_HINT;
+    }
     o->mtime = mtime;
     o->snapc = snapc;
     return op_submit(o);

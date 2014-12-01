@@ -982,7 +982,7 @@ public:
                                  ///< user does not specify any expected value
 
   pg_pool_t()
-    : flags(0), type(0), size(0), hint_size(0), min_size(0),
+    : flags(0), type(0), size(0), min_size(0), hint_size(0),
       crush_ruleset(0), object_hash(0),
       pg_num(0), pgp_num(0),
       last_change(0),

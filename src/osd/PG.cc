@@ -4943,6 +4943,8 @@ bool PG::can_discard_op(OpRequestRef& op)
       osd->handle_misdirected_op(this, op);
       return true;
     }
+  } else if (m->get_flags() & CEPH_OSD_FLAG_HINT){
+	  //check whether I'm HINT! primary
   } else {
     // normal case; must be primary
     if (!is_primary()) {
