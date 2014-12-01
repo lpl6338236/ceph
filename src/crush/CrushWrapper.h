@@ -950,7 +950,6 @@ public:
   void find_primary_with_hint_string(vector<int> *osds, int *primary, char* hint){
 
 	  printf("start\n");
-	  bool exist = false;
       if (!name_exists(hint)){
     	  *primary = osds->at(0);
     	  return;
@@ -961,7 +960,6 @@ public:
 		  return;
 	  }
 	  find_primary_with_hint(crush, osds->data(), osds->size(), primary, hint_pos);
-	  printf("found primary %d %s\n", *primary, hint);
   }
 
   int read_from_file(const char *fn) {

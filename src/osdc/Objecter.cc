@@ -1729,7 +1729,6 @@ ceph_tid_t Objecter::_op_submit_with_budget(Op *op, RWLock::Context& lc, int *ct
 ceph_tid_t Objecter::_op_submit(Op *op, RWLock::Context& lc)
 {
   assert(rwlock.is_locked());
-	  printf("_op_submit %s\n", op->target.hint);
 
   ldout(cct, 10) << __func__ << " op " << op << dendl;
 
