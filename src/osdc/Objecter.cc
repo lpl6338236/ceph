@@ -2090,6 +2090,7 @@ int Objecter::_calc_target(op_target_t *t, bool any_change)
 	  pi->raw_pg_to_pg(pgid))) {
     force_resend = true;
   }
+  printf("calc end\n");
 
   bool need_resend = false;
 

@@ -940,12 +940,6 @@ public:
     int scratch[maxout * 3];
     int numrep = crush_do_rule(crush, rule, x, rawout, maxout, &weight[0], weight.size(), scratch);
 
-    /*
-    char c = name_map.find(0)->second.at(0);
-    printf("BBBBBBBBBB\n");
-    printf("%c\n", c);
-    printf("CCCCCCCCCCC\n");
-    */
     if (numrep < 0)
       numrep = 0;
     out.resize(numrep);
@@ -955,31 +949,19 @@ public:
 
   void find_primary_with_hint_string(vector<int> *osds, int *primary, char* hint){
 
-	  int hint_num = -1;
 	  printf("start\n");
-	  if (hint_num == -1) {
-		  *primary = osds->at(0);
-		  return;
-	  }
 	  bool exist = false;
-      for(std::map<int,string>::const_iterator p = name_map.begin(); p != name_map.end();){
-              if (strcmp(p->second.c_str(), hint) == 0){
-            	  exist = true;
-                  break;
-              }
-      }
-      if (!exist){
+      if (!name_exists(hint)){
     	  *primary = osds->at(0);
     	  return;
       }
-
-	  for(int i = 0; i < crush->max_buckets; i++){
-		  if (strcmp(name_map.find(crush->buckets[i]->id)->second.c_str(), hint) == 0){
-			  hint_num = i;
-			  find_primary_with_hint(crush, osds->data(), osds->size(), primary, hint_num);
-			  return;
-		  }
+      int hint_pos = -1 - get_item_id(hint);
+	  if ((hint_pos > crush->max_buckets) || (crush->buckets[hint_pos] == NULL)) {
+		  *primary = osds->at(0);
+		  return;
 	  }
+	  find_primary_with_hint(crush, osds->data(), osds->size(), primary, hint_pos);
+	  printf("found primary %d %s\n", *primary, hint);
   }
 
   int read_from_file(const char *fn) {
