@@ -678,6 +678,25 @@ class Image(object):
             raise make_ex(ret, 'error reading %s %ld~%ld' % (self.image, offset, length))
         return ctypes.string_at(ret_buf, ret)
 
+    def read_with_hint(self, offset, length, hint):
+        """
+        Read data from the image. Raises :class:`InvalidArgument` if
+        part of the range specified is outside the image.
+
+        :param offset: the offset to start reading at
+        :type offset: int
+        :param length: how many bytes to read
+        :type length: int
+        :returns: str - the data read
+        :raises: :class:`InvalidArgument`, :class:`IOError`
+        """
+        ret_buf = create_string_buffer(length)
+        ret = self.librbd.rbd_read_with_hint(self.image, c_uint64(offset),
+                                   c_size_t(length), byref(ret_buf), c_char_p(hint))
+        if ret < 0:
+            raise make_ex(ret, 'error reading %s %ld~%ld' % (self.image, offset, length))
+        return ctypes.string_at(ret_buf, ret)
+
     def diff_iterate(self, offset, length, from_snapshot, iterate_cb):
         """
         Iterate over the changed extents of an image.
