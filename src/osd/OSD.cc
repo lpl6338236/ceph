@@ -8022,7 +8022,8 @@ void OSD::handle_op(OpRequestRef& op, OSDMapRef& osdmap)
 		      << "\n";
     return;
   }
-  if (!send_map->osd_is_valid_op_target(pgid.pgid, whoami)) {
+  //HINT! handle primary check
+  if (!(m->get_flags() & CEPH_OSD_FLAG_HINT) && !send_map->osd_is_valid_op_target(pgid.pgid, whoami)) {
     dout(7) << "we are invalid target" << dendl;
     clog->warn() << m->get_source_inst() << " misdirected " << m->get_reqid()
 		      << " pg " << m->get_pg()
