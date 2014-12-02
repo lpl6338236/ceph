@@ -1888,7 +1888,10 @@ public:
     Op *o = prepare_mutate_op(oid, oloc, op, snapc, mtime, flags, onack, oncommit, objver);
 
     //This is for HINT!
-    if (hint != NULL) o->target.hint = hint;
+    if (hint != NULL) {
+    	o->target.flags |= CEPH_OSD_FLAG_HINT;
+    	o->target.hint = hint;
+    }
 
     return op_submit(o);
   }
