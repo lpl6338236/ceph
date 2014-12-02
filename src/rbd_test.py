@@ -13,6 +13,6 @@ with rados.Rados(conffile='ceph.conf') as cluster:
         	data = 'foo' * 200
         	image.write_with_hint(data, 0, "osd.1")
 		print "After Write"
-		str = image.read(0, len(data))
+		str = image.read_with_hint(0, len(data), "osd.1")
 		print str
 		image.close()
