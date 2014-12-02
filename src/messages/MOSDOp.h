@@ -99,8 +99,9 @@ public:
     : Message(CEPH_MSG_OSD_OP, HEAD_VERSION, COMPAT_VERSION),
       client_inc(inc),
       osdmap_epoch(_osdmap_epoch), flags(_flags), retry_attempt(-1),
-      oid(_oid), oloc(_oloc), pgid(_pgid), hint(hint) {
+      oid(_oid), oloc(_oloc), pgid(_pgid){
     set_tid(tid);
+    if (hint) this->hint = hint;
   }
 private:
   ~MOSDOp() {}
