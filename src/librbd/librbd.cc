@@ -1426,7 +1426,7 @@ extern "C" ssize_t rbd_read_with_hint(rbd_image_t image, uint64_t ofs, size_t le
 {
   librbd::ImageCtx *ictx = (librbd::ImageCtx *)image;
   tracepoint(librbd, read_enter, ictx, ictx->name.c_str(), ictx->snap_name.c_str(), ictx->read_only, ofs, len);
-  int r = librbd::read(ictx, ofs, len, buf, char* hint);
+  int r = librbd::read(ictx, ofs, len, buf, hint);
   tracepoint(librbd, read_exit, r);
   return r;
 }
