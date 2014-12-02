@@ -141,7 +141,7 @@ namespace librbd {
     int get_parent_overlap(librados::snap_t in_snap_id,
 			   uint64_t *overlap) const;
     void aio_read_from_cache(object_t o, bufferlist *bl, size_t len,
-			     uint64_t off, Context *onfinish);
+			     uint64_t off, Context *onfinish, char* hint = NULL);
     void write_to_cache(object_t o, bufferlist& bl, size_t len, uint64_t off,
 			Context *onfinish, char* hint = NULL);
     int read_from_cache(object_t o, bufferlist *bl, size_t len, uint64_t off);

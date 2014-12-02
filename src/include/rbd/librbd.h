@@ -312,6 +312,7 @@ int rbd_break_lock(rbd_image_t image, const char *client, const char *cookie);
 typedef void *rbd_completion_t;
 typedef void (*rbd_callback_t)(rbd_completion_t cb, void *arg);
 ssize_t rbd_read(rbd_image_t image, uint64_t ofs, size_t len, char *buf);
+ssize_t rbd_read_with_hint(rbd_image_t image, uint64_t ofs, size_t len, char *buf, char* hint = NULL);
 
 /* DEPRECATED; use rbd_read_iterate2 */
 int64_t rbd_read_iterate(rbd_image_t image, uint64_t ofs, size_t len,

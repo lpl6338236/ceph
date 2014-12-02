@@ -57,11 +57,12 @@ class ObjectCacher {
     map<object_t, bufferlist*> read_data;  // bits of data as they come back
     bufferlist *bl;
     int flags;
-    OSDRead(snapid_t s, bufferlist *b, int f) : snap(s), bl(b), flags(f) {}
+    char* hint;
+    OSDRead(snapid_t s, bufferlist *b, int f, char* hint = NULL) : snap(s), bl(b), flags(f), hint(hint) {}
   };
 
-  OSDRead *prepare_read(snapid_t snap, bufferlist *b, int f) {
-    return new OSDRead(snap, b, f);
+  OSDRead *prepare_read(snapid_t snap, bufferlist *b, int f, char* hint = NULL) {
+    return new OSDRead(snap, b, f, hint);
   }
   
   // write scatter/gather  
@@ -434,7 +435,7 @@ class ObjectCacher {
   void bh_remove(Object *ob, BufferHead *bh);
 
   // io
-  void bh_read(BufferHead *bh);
+  void bh_read(BufferHead *bh, char* hint = NULL);
   void bh_write(BufferHead *bh, char* hint = NULL);
 
   void trim();

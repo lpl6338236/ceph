@@ -472,9 +472,9 @@ namespace librbd {
   }
 
   void ImageCtx::aio_read_from_cache(object_t o, bufferlist *bl, size_t len,
-				     uint64_t off, Context *onfinish) {
+				     uint64_t off, Context *onfinish, char* hint) {
     snap_lock.get_read();
-    ObjectCacher::OSDRead *rd = object_cacher->prepare_read(snap_id, bl, 0);
+    ObjectCacher::OSDRead *rd = object_cacher->prepare_read(snap_id, bl, 0, hint);
     snap_lock.put_read();
     ObjectExtent extent(o, 0 /* a lie */, off, len, 0);
     extent.oloc.pool = data_ctx.get_id();

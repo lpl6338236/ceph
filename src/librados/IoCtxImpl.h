@@ -148,7 +148,7 @@ struct librados::IoCtxImpl {
 		  AioCompletionImpl *c, const SnapContext& snap_context,
 		  int flags, char* hint = NULL);
   int aio_operate_read(const object_t& oid, ::ObjectOperation *o,
-		       AioCompletionImpl *c, int flags, bufferlist *pbl);
+		       AioCompletionImpl *c, int flags, bufferlist *pbl, char* hint = NULL);
 
   struct C_aio_Ack : public Context {
     librados::AioCompletionImpl *c;

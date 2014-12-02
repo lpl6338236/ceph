@@ -1325,11 +1325,11 @@ int librados::IoCtx::aio_operate(const std::string& oid, AioCompletion *c,
 
 int librados::IoCtx::aio_operate(const std::string& oid, AioCompletion *c,
 				 librados::ObjectReadOperation *o,
-				 int flags, bufferlist *pbl)
+				 int flags, bufferlist *pbl, char* hint)
 {
   object_t obj(oid);
   return io_ctx_impl->aio_operate_read(obj, (::ObjectOperation*)o->impl, c->pc,
-				       translate_flags(flags), pbl);
+				       translate_flags(flags), pbl, hint);
 }
 
 

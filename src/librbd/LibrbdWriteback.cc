@@ -93,7 +93,7 @@ namespace librbd {
 			     const object_locator_t& oloc,
 			     uint64_t off, uint64_t len, snapid_t snapid,
 			     bufferlist *pbl, uint64_t trunc_size,
-			     __u32 trunc_seq, Context *onfinish)
+			     __u32 trunc_seq, Context *onfinish, char* hint)
   {
     // on completion, take the mutex and then call onfinish.
     Context *req = new C_Request(m_ictx->cct, onfinish, &m_lock);
@@ -103,7 +103,7 @@ namespace librbd {
     op.read(off, len, pbl, NULL);
     int flags = m_ictx->get_read_flags(snapid);
     int r = m_ictx->data_ctx.aio_operate(oid.name, rados_completion, &op,
-					 flags, NULL);
+					 flags, NULL, hint);
     rados_completion->release();
     assert(r >= 0);
   }

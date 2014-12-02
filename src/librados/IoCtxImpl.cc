@@ -564,7 +564,7 @@ int librados::IoCtxImpl::aio_operate_read(const object_t &oid,
 					  ::ObjectOperation *o,
 					  AioCompletionImpl *c,
 					  int flags,
-					  bufferlist *pbl)
+					  bufferlist *pbl, char* hint)
 {
   Context *onack = new C_aio_Ack(c);
 
@@ -573,7 +573,7 @@ int librados::IoCtxImpl::aio_operate_read(const object_t &oid,
 
   Objecter::Op *objecter_op = objecter->prepare_read_op(oid, oloc,
 		 *o, snap_seq, pbl, flags,
-		 onack, &c->objver);
+		 onack, &c->objver, hint);
   c->tid = objecter->op_submit(objecter_op);
   return 0;
 }

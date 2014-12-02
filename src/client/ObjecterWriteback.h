@@ -17,11 +17,11 @@ class ObjecterWriteback : public WritebackHandler {
   virtual void read(const object_t& oid, const object_locator_t& oloc,
 		    uint64_t off, uint64_t len, snapid_t snapid,
 		    bufferlist *pbl, uint64_t trunc_size,  __u32 trunc_seq,
-		    Context *onfinish) {
+		    Context *onfinish, char* hint = NULL) {
     m_objecter->read_trunc(oid, oloc, off, len, snapid, pbl, 0,
 			   trunc_size, trunc_seq,
 			   new C_OnFinisher(new C_Lock(m_lock, onfinish),
-					    m_finisher));
+					    m_finisher), NULL, NULL, hint);
   }
 
   virtual bool may_copy_on_write(const object_t& oid, uint64_t read_off,

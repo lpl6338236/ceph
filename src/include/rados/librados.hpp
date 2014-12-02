@@ -885,7 +885,7 @@ namespace librados
 
     int aio_operate(const std::string& oid, AioCompletion *c,
 		    ObjectReadOperation *op, int flags,
-		    bufferlist *pbl);
+		    bufferlist *pbl, char* hint = NULL);
 
     // watch/notify
     int watch(const std::string& o, uint64_t ver, uint64_t *handle,

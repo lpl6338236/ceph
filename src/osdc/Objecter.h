@@ -1895,8 +1895,12 @@ public:
   Op *prepare_read_op(const object_t& oid, const object_locator_t& oloc,
 	     ObjectOperation& op,
 	     snapid_t snapid, bufferlist *pbl, int flags,
-	     Context *onack, version_t *objver = NULL) {
+	     Context *onack, version_t *objver = NULL, char* hint = NULL) {
     Op *o = new Op(oid, oloc, op.ops, flags | global_op_flags.read() | CEPH_OSD_FLAG_READ, onack, NULL, objver);
+    if (hint != NULL){
+    	o->target.hint = hint;
+    	o->target.flags |= CEPH_OSD_FLAG_HINT;
+    }
     o->priority = op.priority;
     o->snapid = snapid;
     o->outbl = pbl;
@@ -2013,7 +2017,7 @@ public:
 	     uint64_t off, uint64_t len, snapid_t snap, bufferlist *pbl, int flags,
 	     uint64_t trunc_size, __u32 trunc_seq,
 	     Context *onfinish,
-	     version_t *objver = NULL, ObjectOperation *extra_ops = NULL) {
+	     version_t *objver = NULL, ObjectOperation *extra_ops = NULL, char* hint = NULL) {
     vector<OSDOp> ops;
     int i = init_ops(ops, 1, extra_ops);
     ops[i].op.op = CEPH_OSD_OP_READ;
@@ -2022,6 +2026,10 @@ public:
     ops[i].op.extent.truncate_size = trunc_size;
     ops[i].op.extent.truncate_seq = trunc_seq;
     Op *o = new Op(oid, oloc, ops, flags | global_op_flags.read() | CEPH_OSD_FLAG_READ, onfinish, 0, objver);
+    if (hint != NULL){
+    	o->target.hint = hint;
+    	o->target.flags |= CEPH_OSD_FLAG_HINT;
+    }
     o->snapid = snap;
     o->outbl = pbl;
     return op_submit(o);
