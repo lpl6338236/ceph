@@ -46,7 +46,7 @@ private:
   object_t oid;
   object_locator_t oloc;
   pg_t pgid;
-  char* hint;
+  string hint;
 public:
   vector<OSDOp> ops;
 private:
