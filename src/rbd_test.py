@@ -11,8 +11,8 @@ with rados.Rados(conffile='ceph.conf') as cluster:
         with rbd_hint.Image(ioctx, 'test') as image:
 		print "Before Write"
         	data = 'foo' * 200
-        	image.write_with_hint(data, 0, "osd.1")
+        	image.write_with_hint(data, 0, "osd.2")
 		print "After Write"
-		str = image.read_with_hint(0, len(data), "osd.1")
+		str = image.read_with_hint(0, len(data), "osd.2")
 		print str
 		image.close()
