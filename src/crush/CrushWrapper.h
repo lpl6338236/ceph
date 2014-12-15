@@ -956,8 +956,7 @@ public:
       }
       int hint_pos = get_item_id(hint);
       printf("pos %d\n",hint_pos);
-      int max_buckets = crush->max_buckets;
-	  if ((hint_pos > max_buckets) || (crush->buckets[hint_pos] == NULL)) {
+	  if (hint_pos > crush->max_devices) {
 		  *primary = osds->at(0);
 		  return;
 	  }
