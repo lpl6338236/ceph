@@ -1594,13 +1594,11 @@ void OSDMap::_pg_to_up_acting_osds(const pg_t& pg, vector<int> *up,
 	ps_t pps;
 	_pg_to_osds(*pool, pg, &raw, &_up_primary, &pps);
 	_raw_to_up_osds(*pool, raw, &_up, &_up_primary);
-	printf("_apply_primary_affinity %s\n", hint);
 	if (hint != NULL) {
 		_up_primary = -1;
 		_apply_primary_affinity(pps, *pool, &_up, &_up_primary, hint);
 	}
 	else _apply_primary_affinity(pps, *pool, &_up, &_up_primary);
-	printf("Before _get_temp_osds\n");
 	_get_temp_osds(*pool, pg, &_acting, &_acting_primary);
 	if (_acting.empty()) {
 		_acting = _up;

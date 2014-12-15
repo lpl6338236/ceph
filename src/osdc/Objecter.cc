@@ -1853,9 +1853,7 @@ ceph_tid_t Objecter::_op_submit(Op *op, RWLock::Context& lc)
     op->tid = last_tid.inc();
   _session_op_assign(s, op);
 
-	  printf("need_send %d\n", need_send);
   if (need_send) {
-	  printf("Before _send_op %s\n", op->target.hint);
     _send_op(op, m);
   }
 
@@ -2016,7 +2014,6 @@ int Objecter::_calc_target(op_target_t *t, bool any_change)
 {
   assert(rwlock.is_locked());
 
-  printf("_calc_target %s\n", t->hint);
   bool is_read = t->flags & CEPH_OSD_FLAG_READ;
   bool is_write = t->flags & CEPH_OSD_FLAG_WRITE;
 
@@ -2089,7 +2086,6 @@ int Objecter::_calc_target(op_target_t *t, bool any_change)
 	  pi->raw_pg_to_pg(pgid))) {
     force_resend = true;
   }
-  printf("calc end\n");
 
   bool need_resend = false;
 
@@ -2400,7 +2396,6 @@ MOSDOp *Objecter::_prepare_osd_op(Op *op)
   op->target.paused = false;
   op->stamp = ceph_clock_now(cct);
 
-	  printf("_prepare_osd_op %s\n", op->target.hint);
   MOSDOp *m = new MOSDOp(client_inc.read(), op->tid, 
 			 op->target.target_oid, op->target.target_oloc,
 			 op->target.pgid,

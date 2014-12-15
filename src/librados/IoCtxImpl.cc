@@ -592,7 +592,6 @@ int librados::IoCtxImpl::aio_operate(const object_t& oid,
 
   c->io = this;
   queue_aio_write(c);
-  printf("hint %s\n", hint);
 
   c->tid = objecter->mutate(oid, oloc, *o, snap_context, ut, flags, onack, oncommit,
 		            &c->objver, hint);
