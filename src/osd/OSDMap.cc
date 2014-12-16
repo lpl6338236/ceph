@@ -1391,7 +1391,7 @@ int OSDMap::_pg_to_osds(const pg_pool_t& pool, pg_t pg, vector<int> *osds,
 		int *primary, ps_t *ppps) const {
 	// map to osds[]
 	ps_t pps = pool.raw_pg_to_pps(pg);  // placement ps
-	unsigned size = pool.get_hint_size();
+	unsigned size = pool.get_size();
 
 	// what crush rule?
 	int ruleno = crush->find_rule(pool.get_crush_ruleset(), pool.get_type(),

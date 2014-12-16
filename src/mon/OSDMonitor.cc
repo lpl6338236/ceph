@@ -3767,8 +3767,8 @@ int OSDMonitor::prepare_command_pool_set(map<string,cmd_vartype> &cmdmap,
     if (n < p.min_size)
       p.min_size = n;
   } else if (var == "hint_size"){
-	  if (n < p.size){
-		  ss << "hint_size can't be less than size";
+	  if (n > p.size){
+		  ss << "hint_size can't be more than size";
 		  return -EINVAL;
 	  }
 	  p.hint_size = n;
