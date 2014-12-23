@@ -1373,8 +1373,12 @@ void ReplicatedPG::do_op(OpRequestRef& op)
 	  int primary_for_proxy;
 	  vector<int> acting_for_proxy;
 	  get_osdmap()->pg_to_acting_osds(m->get_pg(), &acting_for_proxy, &primary_for_proxy);
-	  osd->send_message_osd_cluster(primary_for_proxy, m, get_osdmap()->get_epoch());
-	  return;
+	  if (primary_for_proxy != pg_whoami.osd){
+		  MOSDOp* proxy_m = new MOSDOp(*m);
+		  osd->send_message_osd_cluster(primary_for_proxy, proxy_mm, get_osdmap()->get_epoch());
+		  dout(1) << "proxy message to primary from " << pg_whoami.osd << " to " << primary_for_proxy << dendl;
+		  return;
+	  }
   }
   if (op->includes_pg_op()) {
     if (pg_op_must_wait(m)) {
