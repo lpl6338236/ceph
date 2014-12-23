@@ -1383,7 +1383,7 @@ void ReplicatedPG::do_op(OpRequestRef& op)
 			  proxy_m->set_mtime(m->get_mtime());
 			  proxy_m->set_retry_attempt(m->get_retry_attempt());
 			  proxy_m->set_version(m->get_version());
-			  proxy_m->set_priority(m->get_priority);
+			  proxy_m->set_priority(m->get_priority());
 			  osd->send_message_osd_cluster(primary_for_proxy, proxy_m, get_osdmap()->get_epoch());
 			  dout(1) << "proxy message to primary from " << pg_whoami.osd << " to " << primary_for_proxy << dendl;
 			  return;
