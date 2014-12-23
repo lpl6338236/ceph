@@ -1367,7 +1367,7 @@ void ReplicatedPG::do_op(OpRequestRef& op)
 {
   MOSDOp *m = static_cast<MOSDOp*>(op->get_req());
   assert(m->get_header().type == CEPH_MSG_OSD_OP);
-  if ((m->get_flags() & CEPH_OSD_FLAG_HINT) == 1){
+  if (m->get_flags() & CEPH_OSD_FLAG_HINT){
 	  //serve as a proxy
 
 	  int primary_for_proxy;
