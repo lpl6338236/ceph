@@ -1372,7 +1372,7 @@ void ReplicatedPG::do_op(OpRequestRef& op)
 
 	  int primary_for_proxy;
 	  vector<int> acting_for_proxy;
-	  get_osdmap()->pg_to_acting_osds(m->pgid, &acting_for_proxy, &primary_for_proxy);
+	  get_osdmap()->pg_to_acting_osds(m->get_pg(), &acting_for_proxy, &primary_for_proxy);
 	  osd->send_message_osd_cluster(primary_for_proxy, m, get_osdmap()->get_epoch());
 	  return;
   }
