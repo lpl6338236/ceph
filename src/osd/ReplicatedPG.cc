@@ -1374,10 +1374,19 @@ void ReplicatedPG::do_op(OpRequestRef& op)
 	  vector<int> acting_for_proxy;
 	  get_osdmap()->pg_to_acting_osds(m->get_pg(), &acting_for_proxy, &primary_for_proxy);
 	  if (primary_for_proxy != pg_whoami.osd){
-		  MOSDOp* proxy_m = m->clone();
-		  osd->send_message_osd_cluster(primary_for_proxy, proxy_m, get_osdmap()->get_epoch());
-		  dout(1) << "proxy message to primary from " << pg_whoami.osd << " to " << primary_for_proxy << dendl;
-		  return;
+			  MOSDOp* proxy_m = new MOSDOp(m->get_client_inc(), m->get_tid(), m->get_oid(), m->get_object_locator(), m->get_pg(), m->get_map_epoch(), m->get_flags());
+			  proxy_m->set_snapid(m->get_snapid());
+			  proxy_m->set_snap_seq(m->get_snap_seq());
+			  proxy_m->set_snaps(m->get_snaps());
+
+			  proxy_m->ops = m->ops;
+			  proxy_m->set_mtime(m->get_mtime());
+			  proxy_m->set_retry_attempt(m->get_retry_attempt());
+			  proxy_m->set_version(m->get_version());
+			  proxy_m->set_priority(m->get_priority);
+			  osd->send_message_osd_cluster(primary_for_proxy, proxy_m, get_osdmap()->get_epoch());
+			  dout(1) << "proxy message to primary from " << pg_whoami.osd << " to " << primary_for_proxy << dendl;
+			  return;
 	  }
   }
   if (op->includes_pg_op()) {
