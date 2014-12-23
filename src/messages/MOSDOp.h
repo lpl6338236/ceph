@@ -90,6 +90,12 @@ public:
   const eversion_t& get_version() { return reassert_version; }
   
   utime_t get_mtime() { return mtime; }
+  void set_hint(string h){
+	  hint = h;
+  }
+  string get_hint(){
+	  return hint;
+  }
 
   MOSDOp()
     : Message(CEPH_MSG_OSD_OP, HEAD_VERSION, COMPAT_VERSION) { }

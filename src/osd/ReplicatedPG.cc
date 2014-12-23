@@ -1374,7 +1374,7 @@ void ReplicatedPG::do_op(OpRequestRef& op)
 	  vector<int> acting_for_proxy;
 	  get_osdmap()->pg_to_acting_osds(m->get_pg(), &acting_for_proxy, &primary_for_proxy);
 	  if (primary_for_proxy != pg_whoami.osd){
-			  MOSDOp* proxy_m = new MOSDOp(m->get_client_inc(), m->get_tid(), m->get_oid(), m->get_object_locator(), m->get_pg(), m->get_map_epoch(), m->get_flags());
+			  MOSDOp* proxy_m = new MOSDOp(m->get_client_inc(), (long)m->get_tid(), m->get_oid(), m->get_object_locator(), m->get_pg(), m->get_map_epoch(), m->get_flags(),m->get_hint().c_str());
 			  proxy_m->set_snapid(m->get_snapid());
 			  proxy_m->set_snap_seq(m->get_snap_seq());
 			  proxy_m->set_snaps(m->get_snaps());
