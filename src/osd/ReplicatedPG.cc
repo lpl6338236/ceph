@@ -1377,6 +1377,7 @@ void ReplicatedPG::do_op(OpRequestRef& op)
 		  	  object_locator_t oloc = m->get_object_locator();
 		  	  pg_t pgid = m->get_pg();
 			  MOSDOp* proxy_m = new MOSDOp(m->get_client_inc(), (long)m->get_tid(), m->get_oid(), oloc, pgid, m->get_map_epoch(), m->get_flags(), m->get_hint());
+			  m->set_proxy(m->get_connection());
 			  proxy_m->set_snapid(m->get_snapid());
 			  proxy_m->set_snap_seq(m->get_snap_seq());
 			  proxy_m->set_snaps(m->get_snaps());
@@ -1388,6 +1389,7 @@ void ReplicatedPG::do_op(OpRequestRef& op)
 			  proxy_m->set_priority(m->get_priority());
 			  osd->send_message_osd_cluster(primary_for_proxy, proxy_m, get_osdmap()->get_epoch());
 			  dout(1) << "proxy message to primary from " << pg_whoami.osd << " to " << primary_for_proxy << dendl;
+
 			  return;
 	  }
   }
@@ -7067,7 +7069,7 @@ void ReplicatedPG::eval_repop(RepGather *repop)
 	}
 	reply->add_flags(CEPH_OSD_FLAG_ACK);
 	dout(10) << " sending ack on " << *repop << " " << reply << dendl;
-        assert(entity_name_t::TYPE_OSD != m->get_connection()->peer_type);
+//assert(entity_name_t::TYPE_OSD != m->get_connection()->peer_type);
 	osd->send_message_osd_client(reply, m->get_connection());
 	repop->sent_ack = true;
       }

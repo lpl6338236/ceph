@@ -46,6 +46,7 @@ class MOSDOpReply : public Message {
   epoch_t osdmap_epoch;
   int32_t retry_attempt;
   request_redirect_t redirect;
+  ConnectionRef proxy_con;
 
 public:
   const object_t& get_oid() const { return oid; }
@@ -143,6 +144,7 @@ public:
       if (ignore_out_data)
 	ops[i].outdata.clear();
     }
+    proxy_con = req->get_proxy();
   }
 private:
   ~MOSDOpReply() {}
