@@ -1376,8 +1376,7 @@ void ReplicatedPG::do_op(OpRequestRef& op)
 	  if (primary_for_proxy != pg_whoami.osd){
 		  	  object_locator_t oloc = m->get_object_locator();
 		  	  pg_t pgid = m->get_pg();
-		  	  char* hint = m->get_hint().c_str();
-			  MOSDOp* proxy_m = new MOSDOp(m->get_client_inc(), (long)m->get_tid(), m->get_oid(), oloc, pgid, m->get_map_epoch(), hint);
+			  MOSDOp* proxy_m = new MOSDOp(m->get_client_inc(), (long)m->get_tid(), m->get_oid(), oloc, pgid, m->get_map_epoch(), m->get_flags(), m->get_hint());
 			  proxy_m->set_snapid(m->get_snapid());
 			  proxy_m->set_snap_seq(m->get_snap_seq());
 			  proxy_m->set_snaps(m->get_snaps());
