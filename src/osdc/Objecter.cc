@@ -2396,11 +2396,12 @@ MOSDOp *Objecter::_prepare_osd_op(Op *op)
   op->target.paused = false;
   op->stamp = ceph_clock_now(cct);
 
+  char* hint = op->target.hint;
   MOSDOp *m = new MOSDOp(client_inc.read(), op->tid, 
 			 op->target.target_oid, op->target.target_oloc,
 			 op->target.pgid,
 			 osdmap->get_epoch(),
-			 flags, string(op->target.hint));
+			 flags, hint?string(hint):string(""));
 
   m->set_snapid(op->snapid);
   m->set_snap_seq(op->snapc.seq);
