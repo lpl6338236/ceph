@@ -13,39 +13,39 @@
         osd pool default erasure code profile = plugin=jerasure technique=reed_sol_van k=2 m=1 ruleset-failure-domain=osd
         rgw frontends = fastcgi, civetweb port=8000
         filestore fd cache size = 32
-        run dir = /home/fedora/tmpceph/out
+        run dir = /root/script-ceph/out
         auth supported = cephx
 
 [client]
-        keyring = /home/fedora/tmpceph/ceph.client.admin.keyring
-        log file = /home/fedora/tmpceph/out/$name.$pid.log
-        admin socket = /home/fedora/tmpceph/out/$name.$pid.asok
+        keyring = /root/script-ceph/ceph.client.admin.keyring
+        log file = /root/script-ceph/out/$name.$pid.log
+        admin socket = /root/script-ceph/out/$name.$pid.asok
 
 [mds]
 
-        log file = /home/fedora/tmpceph/out/$name.$pid.log
-        admin socket = /home/fedora/tmpceph/out/$name.$pid.asok
+        log file = /root/script-ceph/out/$name.$pid.log
+        admin socket = /root/script-ceph/out/$name.$pid.asok
 	chdir = ""
-	pid file = /home/fedora/tmpceph/out/$name.pid
-        heartbeat file = /home/fedora/tmpceph/out/$name.heartbeat
+	pid file = /root/script-ceph/out/$name.pid
+        heartbeat file = /root/script-ceph/out/$name.heartbeat
 
 
         debug ms = 1
         mds debug frag = true
         mds debug auth pins = true
         mds debug subtrees = true
-        mds data = /home/fedora/tmpceph/mds/mds.$id
+        mds data = /root/script-ceph/mds/mds.$id
 
 [osd]
 
-        log file = /home/fedora/tmpceph/out/$name.$pid.log
-        admin socket = /home/fedora/tmpceph/out/$name.$pid.asok
+        log file = /root/script-ceph/out/$name.$pid.log
+        admin socket = /root/script-ceph/out/$name.$pid.asok
 	chdir = ""
-	pid file = /home/fedora/tmpceph/out/$name.pid
-        heartbeat file = /home/fedora/tmpceph/out/$name.heartbeat
+	pid file = /root/script-ceph/out/$name.pid
+        heartbeat file = /root/script-ceph/out/$name.heartbeat
 
-        osd data = /home/fedora/tmpceph/osd/osd$id
-        osd journal = /home/fedora/tmpceph/osd/osd$id.journal
+        osd data = /root/script-ceph/osd/osd$id
+        osd journal = /root/script-ceph/osd/osd$id/osd$id.journal
         osd journal size = 100
         osd class tmp = out
         osd class dir = .libs
@@ -66,32 +66,60 @@
         mon osd allow primary affinity = true
         mon reweight min pgs per osd = 4
 
-        log file = /home/fedora/tmpceph/out/$name.$pid.log
-        admin socket = /home/fedora/tmpceph/out/$name.$pid.asok
+        log file = /root/script-ceph/out/$name.$pid.log
+        admin socket = /root/script-ceph/out/$name.$pid.asok
 	chdir = ""
-	pid file = /home/fedora/tmpceph/out/$name.pid
-        heartbeat file = /home/fedora/tmpceph/out/$name.heartbeat
+	pid file = /root/script-ceph/out/$name.pid
+        heartbeat file = /root/script-ceph/out/$name.heartbeat
 
 
 	debug mon = 10
         debug ms = 1
 
-        mon cluster log file = /home/fedora/tmpceph/out/cluster.mon.$id.log
+        mon cluster log file = /root/script-ceph/out/cluster.mon.$id.log
 [global]
 
 [mon.a]
-        host = ceps-build
-        mon data = /home/fedora/tmpceph/mon/mon.a
-        mon addr = 127.0.0.1:6789
+        host = n132
+        mon data = /root/script-ceph/mon/mon.a
+        mon addr = 10.1.0.132:6789
+[mon.b]
+        host = n133
+        mon data = /root/script-ceph/mon/mon.a
+        mon addr = 10.1.0.133:6789
+[mon.c]
+        host = n134
+        mon data = /root/script-ceph/mon/mon.a
+        mon addr = 10.1.0.134:6789
 [osd.0]
-        host = ceps-build
+        host = n132
 [osd.1]
-        host = ceps-build
+        host = n132
 [osd.2]
-        host = ceps-build
-[mds.a]
-        host = ceps-build
-[mds.b]
-        host = ceps-build
-[mds.c]
-        host = ceps-build
+        host = n132
+[osd.3]
+        host = n132
+[osd.4]
+        host = n133
+[osd.5]
+        host = n133
+[osd.6]
+        host = n133
+[osd.7]
+        host = n133
+[osd.8]
+        host = n134
+[osd.9]
+        host = n134
+[osd.10]
+        host = n134
+[osd.11]
+        host = n134
+[osd.12]
+        host = n135
+[osd.13]
+        host = n135
+[osd.14]
+        host = n135
+[osd.15]
+        host = n135
