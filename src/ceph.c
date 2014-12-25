@@ -4,7 +4,6 @@
         osd pgp bits = 5  ; (invalid, but ceph should cope!)
         osd crush chooseleaf type = 0
         osd pool default min size = 1
-        osd pool default hint size = 6
         osd failsafe full ratio = .99
         mon osd full ratio = .99
         mon data avail warn = 10
@@ -38,7 +37,7 @@
 
 [osd]
 
-        log file = /root/script-ceph/out/$name.$pid.log
+        log file = /root/ceph/src/out/$name.$pid.log
         admin socket = /root/script-ceph/out/$name.$pid.asok
 	chdir = ""
 	pid file = /root/script-ceph/out/$name.pid
