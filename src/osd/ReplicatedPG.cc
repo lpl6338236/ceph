@@ -1250,14 +1250,17 @@ void ReplicatedPG::do_request(
   OpRequestRef& op,
   ThreadPool::TPHandle &handle)
 {
+	dout(10) << "------1----------" << dendl;
   if (!op_has_sufficient_caps(op)) {
     osd->reply_op_error(op, -EPERM);
     return;
   }
+	dout(10) << "------2----------" << dendl;
   assert(!op_must_wait_for_map(get_osdmap()->get_epoch(), op));
   if (can_discard_request(op)) {
     return;
   }
+	dout(10) << "------3----------" << dendl;
   if (flushes_in_progress > 0) {
     dout(20) << flushes_in_progress
 	     << " flushes_in_progress pending "
@@ -1265,6 +1268,7 @@ void ReplicatedPG::do_request(
     waiting_for_active.push_back(op);
     return;
   }
+	dout(10) << "------4----------" << dendl;
 
   if (!is_active()) {
     // Delay unless PGBackend says it's ok
@@ -1277,10 +1281,12 @@ void ReplicatedPG::do_request(
       return;
     }
   }
+	dout(10) << "------5----------" << dendl;
 
   assert(is_active() && flushes_in_progress == 0);
   if (pgbackend->handle_message(op))
     return;
+	dout(10) << "------6----------" << dendl;
 
   switch (op->get_req()->get_type()) {
   case CEPH_MSG_OSD_OP:
@@ -1292,6 +1298,7 @@ void ReplicatedPG::do_request(
     // verify client features
     if ((pool.info.has_tiers() || pool.info.is_tier()) &&
 	!op->has_feature(CEPH_FEATURE_OSD_CACHEPOOL)) {
+	dout(10) << "------client feature----------" << dendl;
       osd->reply_op_error(op, -EOPNOTSUPP);
       return;
     }
@@ -1373,6 +1380,7 @@ void ReplicatedPG::do_op(OpRequestRef& op)
 	  int primary_for_proxy;
 	  vector<int> acting_for_proxy;
 	  get_osdmap()->pg_to_acting_osds(m->get_pg(), &acting_for_proxy, &primary_for_proxy);
+	  dout(1) << "proxy self " << pg_whoami.osd << " primary " << primary_for_proxy << dendl;
 	  if (primary_for_proxy != pg_whoami.osd){
 		  	  object_locator_t oloc = m->get_object_locator();
 		  	  pg_t pgid = m->get_pg();
