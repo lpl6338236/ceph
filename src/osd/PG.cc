@@ -1683,6 +1683,8 @@ void PG::activate(ObjectStore::Transaction& t,
 bool PG::op_has_sufficient_caps(OpRequestRef& op)
 {
   // only check MOSDOp
+	//THIS IS JUST FOR TEST PROXY!!!
+	return true;
   if (op->get_req()->get_type() != CEPH_MSG_OSD_OP)
     return true;
 
