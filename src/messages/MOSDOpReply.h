@@ -150,6 +150,12 @@ private:
   ~MOSDOpReply() {}
 
 public:
+  void set_proxy(ConnectionRef& p){
+	  proxy_con = p;
+  }
+  ConnectionRef& get_proxy(){
+	  return proxy_con;
+  }
   virtual void encode_payload(uint64_t features) {
 
     OSDOp::merge_osd_op_vector_out_data(ops, data);

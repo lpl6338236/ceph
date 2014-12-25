@@ -5729,6 +5729,12 @@ void OSD::_dispatch(Message *m)
     handle_rep_scrub(static_cast<MOSDRepScrub*>(m));
     break;    
 
+  case CEPH_MSG_OSD_OPREPLY:
+	  MOSDOpReply* m = static_cast<MOSDOpReply*>(m);
+	  dout(10) << "send to client "<<dendl;
+	  send_message_client_network(m, m->get_proxy());
+	  break;
+
     // -- need OSDMap --
 
   default:
