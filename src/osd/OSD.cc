@@ -5731,7 +5731,7 @@ void OSD::_dispatch(Message *m)
 
   case CEPH_MSG_OSD_OPREPLY:
 	  dout(10) << "send to client "<<dendl;
-	  service.send_message_osd_client(m, static_cast<MOSDOpReply*>(m)->get_proxy());
+	  (static_cast<MOSDOpReply*>(m))->get_proxy()->send_message(m);
 	  break;
 
     // -- need OSDMap --
