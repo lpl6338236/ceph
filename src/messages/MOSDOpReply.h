@@ -49,6 +49,8 @@ class MOSDOpReply : public Message {
   entity_addr_t proxy_con;
 
 public:
+  entity_addr_t get_proxy(){ return proxy_con; }
+  void set_proxy(entity_addr_t p){ proxy_con = p; }
   const object_t& get_oid() const { return oid; }
   const pg_t&     get_pg() const { return pgid; }
   int      get_flags() const { return flags; }
@@ -144,7 +146,7 @@ public:
       if (ignore_out_data)
 	ops[i].outdata.clear();
     }
-    proxy_con = req->proxy_con;
+    proxy_con = req->get_proxy();
   }
 private:
   ~MOSDOpReply() {}

@@ -59,6 +59,8 @@ private:
 public:
   friend class MOSDOpReply;
 
+  entity_addr_t get_proxy(){ return proxy_con; }
+  void set_proxy(entity_addr_t p){ proxy_con = p; }
   // read
   const snapid_t& get_snapid() { return snapid; }
   void set_snapid(const snapid_t& s) { snapid = s; }
