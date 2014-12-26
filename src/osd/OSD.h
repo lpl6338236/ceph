@@ -316,6 +316,7 @@ public:
   LogChannelRef clog;
   PGRecoveryStats &pg_recovery_stats;
   hobject_t infos_oid;
+  map<entity_addr_t, ConnectionRef> proxied_connection;
 private:
   Messenger *&cluster_messenger;
   Messenger *&client_messenger;

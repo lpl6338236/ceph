@@ -144,18 +144,12 @@ public:
       if (ignore_out_data)
 	ops[i].outdata.clear();
     }
-    proxy_con = req->get_proxy();
+    proxy_con = req->proxy_con;
   }
 private:
   ~MOSDOpReply() {}
 
 public:
-  void set_proxy(ConnectionRef& p){
-	  proxy_con = p;
-  }
-  ConnectionRef& get_proxy(){
-	  return proxy_con;
-  }
   virtual void encode_payload(uint64_t features) {
 
     OSDOp::merge_osd_op_vector_out_data(ops, data);
@@ -183,6 +177,7 @@ public:
       ::encode(result, payload);
       ::encode(bad_replay_version, payload);
       ::encode(osdmap_epoch, payload);
+      ::encode(proxy_con, payload);
 
       __u32 num_ops = ops.size();
       ::encode(num_ops, payload);
@@ -223,6 +218,7 @@ public:
       ::decode(result, p);
       ::decode(bad_replay_version, p);
       ::decode(osdmap_epoch, p);
+      ::decode(proxy_con, p);
 
       __u32 num_ops = ops.size();
       ::decode(num_ops, p);

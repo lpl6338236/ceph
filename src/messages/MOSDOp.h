@@ -54,7 +54,7 @@ private:
   snapid_t snapid;
   snapid_t snap_seq;
   vector<snapid_t> snaps;
-  ConnectionRef proxy_con;
+  entity_addr_t proxy_con;
 
 public:
   friend class MOSDOpReply;
@@ -97,8 +97,6 @@ public:
   string get_hint(){
 	  return hint;
   }
-  const ConnectionRef& get_proxy() { return proxy_con; }
-  void set_proxy(const ConnectionRef& p) { proxy_con = p; }
 
   MOSDOp()
     : Message(CEPH_MSG_OSD_OP, HEAD_VERSION, COMPAT_VERSION) { }

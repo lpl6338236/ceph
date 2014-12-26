@@ -1385,7 +1385,8 @@ void ReplicatedPG::do_op(OpRequestRef& op)
 		  	  object_locator_t oloc = m->get_object_locator();
 		  	  pg_t pgid = m->get_pg();
 			  MOSDOp* proxy_m = new MOSDOp(m->get_client_inc(), (long)m->get_tid(), m->get_oid(), oloc, pgid, m->get_map_epoch(), m->get_flags(), m->get_hint());
-			  m->set_proxy(m->get_connection());
+			  proxy_m->proxy_con = m->get_connection().get()->peer_addr;
+			  osd->proxied_connection[proxy_m->proxy_con] = m->get_connection();
 			  proxy_m->set_snapid(m->get_snapid());
 			  proxy_m->set_snap_seq(m->get_snap_seq());
 			  proxy_m->set_snaps(m->get_snaps());

@@ -5730,9 +5730,10 @@ void OSD::_dispatch(Message *m)
     break;    
 
   case CEPH_MSG_OSD_OPREPLY:
-	  MOSDOpReply* m = static_cast<MOSDOpReply*>(m);
 	  dout(10) << "send to client "<<dendl;
-	  send_message_client_network(m, m->get_proxy());
+	  assert(service.proxied_connection.count(static_cast<MOSDOpReply*>(m)->proxy_con));
+	  send_message_client_network(m, service.proxied_connection.find(static_cast<MOSDOpReply*>(m)->proxy_con));
+	  service.proxied_connection.erase(static_cast<MOSDOpReply*>(m)->proxy_con);
 	  break;
 
     // -- need OSDMap --
