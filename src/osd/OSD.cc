@@ -5731,6 +5731,7 @@ void OSD::_dispatch(Message *m)
 
   case CEPH_MSG_OSD_OPREPLY:
 	  dout(10) << "send to client "<<dendl;
+	  dout(10) << static_cast<MOSDOpReply*>(m)->get_proxy() << dendl;
 	  assert(service.proxied_connection.count(static_cast<MOSDOpReply*>(m)->get_proxy()));
 	  service.send_message_osd_client(m, service.proxied_connection.find(static_cast<MOSDOpReply*>(m)->get_proxy())->second);
 	  service.proxied_connection.erase(static_cast<MOSDOpReply*>(m)->get_proxy());

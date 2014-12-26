@@ -1380,13 +1380,14 @@ void ReplicatedPG::do_op(OpRequestRef& op)
 	  int primary_for_proxy;
 	  vector<int> acting_for_proxy;
 	  get_osdmap()->pg_to_acting_osds(m->get_pg(), &acting_for_proxy, &primary_for_proxy);
-	  dout(1) << "proxy self " << pg_whoami.osd << " primary " << primary_for_proxy << dendl;
+	  dout(10) << "proxy self " << pg_whoami.osd << " primary " << primary_for_proxy << dendl;
 	  if (primary_for_proxy != pg_whoami.osd){
 		  	  object_locator_t oloc = m->get_object_locator();
 		  	  pg_t pgid = m->get_pg();
 			  MOSDOp* proxy_m = new MOSDOp(m->get_client_inc(), (long)m->get_tid(), m->get_oid(), oloc, pgid, m->get_map_epoch(), m->get_flags(), m->get_hint());
 			  proxy_m->set_proxy(m->get_connection().get()->peer_addr);
 			  osd->proxied_connection[proxy_m->get_proxy()] = m->get_connection();
+			  dout(10) << proxy_m->get_proxy()<<dendl;
 			  proxy_m->set_snapid(m->get_snapid());
 			  proxy_m->set_snap_seq(m->get_snap_seq());
 			  proxy_m->set_snaps(m->get_snaps());
