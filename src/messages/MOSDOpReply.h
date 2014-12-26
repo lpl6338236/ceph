@@ -168,6 +168,7 @@ public:
       head.num_ops = ops.size();
       head.object_len = oid.name.length();
       ::encode(head, payload);
+      ::encode(proxy_con, payload);
       for (unsigned i = 0; i < head.num_ops; i++) {
 	::encode(ops[i].op, payload);
       }
@@ -201,6 +202,7 @@ public:
     if (header.version < 2) {
       ceph_osd_reply_head head;
       ::decode(head, p);
+      ::decode(proxy_con, p);
       ops.resize(head.num_ops);
       for (unsigned i = 0; i < head.num_ops; i++) {
 	::decode(ops[i].op, p);
