@@ -235,6 +235,7 @@ struct ceph_osd_request_head {
       ::encode(num_ops, payload);
       for (unsigned i = 0; i < ops.size(); i++)
 	::encode(ops[i].op, payload);
+      ::encode(proxy_con, payload);
 
       ::encode_nohead(oid.name, payload);
       ::encode_nohead(snaps, payload);
@@ -297,6 +298,7 @@ struct ceph_osd_request_head {
       ops.resize(num_ops);
       for (unsigned i = 0; i < num_ops; i++)
 	::decode(ops[i].op, p);
+      ::decode(proxy_con, p);
 
       decode_nohead(oid_len, oid.name, p);
       decode_nohead(num_snaps, snaps, p);
