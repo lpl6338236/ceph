@@ -158,9 +158,7 @@ int find_primary_recursively(struct crush_map* crush, struct crush_bucket* b, in
 	int candidate = -1;
 	int find_hint = 0;
 	int i = 0;
-	printf("hint %d\n", hint);
 	for (i = 0; i < b->size; i++){
-		printf("%d %d\n",i, b->items[i]);
 		int leaf = 0;
 		if (b->items[i] == hint) find_hint = 1;
 		if (b->items[i] >= 0) leaf = 1;
@@ -170,7 +168,6 @@ int find_primary_recursively(struct crush_map* crush, struct crush_bucket* b, in
 				candidate = osds[j];
 			}
 		}
-		printf("can %d\n",candidate);
 
 		if (leaf == 0){
 			int r = find_primary_recursively(crush, crush->buckets[-1-b->items[i]], osds, size, primary, hint);

@@ -1444,20 +1444,18 @@ void OSDMap::_raw_to_up_osds(const pg_pool_t& pool, const vector<int>& raw,
 void OSDMap::_apply_primary_affinity(ps_t seed, const pg_pool_t& pool,
 		vector<int> *osds, int *primary, char* hint) const {
 	crush->find_primary_with_hint_string(osds, primary, hint);
-	  printf("found primary %d %s\n", *primary, hint);
-	int hint_size = pool.get_hint_size();
-	  printf("hint_size %d\n", hint_size);
+	int size = pool.get_size();
 	vector<int> new_osds;
 	new_osds.push_back(*primary);
 	int sum = 0;
 	for (unsigned int i = 0; i < strlen(hint); i++){
 		sum += hint[i];
 	}
-	int osd = sum % hint_size;
-	for (int i = 0; i < hint_size - 1; i++, osd++){
-		printf("%d,%d\n", i, osds->at(osd % hint_size));
-		if (osd != *primary) new_osds.push_back(osds->at(osd % hint_size));
-		else new_osds.push_back(osds->at((++osd) % hint_size));
+	int osd = sum % size;
+	for (int i = 0; i < size - 1; i++, osd++){
+		printf("%d,%d\n", i, osds->at(osd % size));
+		if (osd != *primary) new_osds.push_back(osds->at(osd % size));
+		else new_osds.push_back(osds->at((++osd) % size));
 	}
 	osds->swap(new_osds);
 }

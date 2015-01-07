@@ -628,17 +628,6 @@ private:
 			vector<int> *acting, int *acting_primary, char* hint = NULL) const;
 
 public:
-	//This is only for providing hint for where to store the data
-	int pg_to_acting_osds_with_hint(const pg_t& pg, vector<int> *acting,
-			int *acting_primary, char* hint) const {
-		_pg_to_up_acting_osds(pg, NULL, NULL, acting, acting_primary, hint);
-		return acting->size();
-	}
-	int pg_to_acting_osds_with_hint(pg_t pg, vector<int>& acting, char* hint) {
-		int primary;
-		int r = pg_to_acting_osds_with_hint(pg, &acting, &primary, hint);
-		return r;
-	}
   /***
    * This is suitable only for looking at raw CRUSH outputs. It skips
    * applying the temp and up checks and should not be used
