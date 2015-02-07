@@ -1367,15 +1367,6 @@ void ReplicatedPG::do_op(OpRequestRef& op)
 {
   MOSDOp *m = static_cast<MOSDOp*>(op->get_req());
   assert(m->get_header().type == CEPH_MSG_OSD_OP);
-  if ((m->get_flags() & CEPH_OSD_FLAG_HINT) == 1){
-	  //serve as a proxy
-
-	  int primary_for_proxy;
-	  vector<int> acting_for_proxy;
-	  get_osdmap()->pg_to_acting_osds(m->pgid, &acting_for_proxy, &primary_for_proxy);
-	  osd->send_message_osd_cluster(primary_for_proxy, m, get_osdmap()->get_epoch());
-	  return;
-  }
   if (op->includes_pg_op()) {
     if (pg_op_must_wait(m)) {
       wait_for_all_missing(op);
