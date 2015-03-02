@@ -1011,6 +1011,8 @@ public:
 				  const std::set <std::string> &changed);
 
 public:
+  ceph::unordered_map<string, string> pg_choice;
+  pg_t choose_pg(pg_t pgid);
   Messenger *messenger;
   MonClient *monc;
 private:

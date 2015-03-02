@@ -2063,6 +2063,9 @@ int Objecter::_calc_target(op_target_t *t, bool any_change)
       return RECALC_OP_TARGET_POOL_DNE;
     }
   }
+  if (pg_choice.find(t->target_oid.name) != pg_choice.end())
+	  pgid = pg_choice[t->target_oid.name];
+  pgid = choose_pg(pgid);
 
   int min_size = pi->min_size;
   unsigned pg_num = pi->get_pg_num();
