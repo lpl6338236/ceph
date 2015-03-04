@@ -839,6 +839,22 @@ public:
     primary_temp->clear();
   }
 
+  pg_t get_local_pg(pg_t start_pgid, char* hint, object_locator_t oloc){
+	  vector<int> *osds;
+	  int* primary;
+	  vector<pg_t> pgs;
+	  for (int i = 0; i < 3; i++){
+		  int up_primary, acting_primary;
+		  vector<int> up, acting;
+		  pg_t pgid = pg_t((start_pgid.m_seed + i) % get_pg_pool(oloc.get_pool()), start_pgid.m_pool);
+		  pg_to_up_acting_osds(pgid, &up, &up_primary,
+		  					       &acting, &acting_primary);
+		  osds->push_back(acting_primary);
+		  pgs.push_back(pgid);
+	  }
+	  crush->find_primary_with_hint_string(osds, primary, hint);
+	  return pgs[find(osds->begin(), osds->end(), primary) - osds->begin()];
+  }
 private:
 	void print_osd_line(int cur, ostream *out, Formatter *f) const;
 public:

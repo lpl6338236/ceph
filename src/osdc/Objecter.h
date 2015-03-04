@@ -1011,7 +1011,8 @@ public:
 				  const std::set <std::string> &changed);
 
 public:
-  ceph::unordered_map<string, string> pg_choice;
+  ceph::unordered_map<object_t, pg_t> pg_choice;
+  ceph::unordered_map<object_t, int> unfound_pg;
   Messenger *messenger;
   MonClient *monc;
 private:
@@ -1577,8 +1578,8 @@ public:
 
  private:
   map<uint64_t, LingerOp*>  linger_ops;
-  ceph::unordered_map<string,vector<Op*>> unchosen_ops;
-  ceph::unordered_map<string,vector<Op*>> query_ops;
+  ceph::unordered_map<object_t,vector<Op*>> unchosen_ops;
+  ceph::unordered_map<object_t,vector<Op*>> query_ops;
 
   map<ceph_tid_t,PoolStatOp*>    poolstat_ops;
   map<ceph_tid_t,StatfsOp*>      statfs_ops;
