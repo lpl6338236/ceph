@@ -1012,7 +1012,6 @@ public:
 
 public:
   ceph::unordered_map<string, string> pg_choice;
-  pg_t choose_pg(pg_t pgid);
   Messenger *messenger;
   MonClient *monc;
 private:
@@ -1578,6 +1577,8 @@ public:
 
  private:
   map<uint64_t, LingerOp*>  linger_ops;
+  ceph::unordered_map<string,vector<Op*>> unchosen_ops;
+  ceph::unordered_map<string,vector<Op*>> query_ops;
 
   map<ceph_tid_t,PoolStatOp*>    poolstat_ops;
   map<ceph_tid_t,StatfsOp*>      statfs_ops;
@@ -1596,6 +1597,7 @@ public:
 
   double mon_timeout, osd_timeout;
 
+  pg_t choose_pg(Op* op);
   MOSDOp *_prepare_osd_op(Op *op);
   void _send_op(Op *op, MOSDOp *m = NULL);
   void _cancel_linger_op(Op *op);

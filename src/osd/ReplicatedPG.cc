@@ -1367,6 +1367,19 @@ void ReplicatedPG::do_op(OpRequestRef& op)
 {
   MOSDOp *m = static_cast<MOSDOp*>(op->get_req());
   assert(m->get_header().type == CEPH_MSG_OSD_OP);
+  if (m->flags && CEPH_OSD_OBJECT_QUERY){
+	  	hobject_t ho;
+	  	ho.oid = m->oid;
+		ObjectContextRef t_sobc = get_object_context(ho, false);
+		if (!t_sobc) {
+		    osd->reply_op_error(op, -ENOENT);
+		    return;
+		}
+		else{
+			osd->reply_op_error(op, ENOENT);
+			return;
+		}
+  }
   if (op->includes_pg_op()) {
     if (pg_op_must_wait(m)) {
       wait_for_all_missing(op);

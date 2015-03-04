@@ -1726,6 +1726,40 @@ ceph_tid_t Objecter::_op_submit_with_budget(Op *op, RWLock::Context& lc, int *ct
   return tid;
 }
 
+pg_t Objecter::choose_pg(Op* op){
+	for (int i = 0; i < 3; i++){
+		RWLock::Context lc(rwlock, RWLock::Context::TakenForRead);
+		Op* query = new Op(op->target.target_oid, op->target.target_oloc, NULL, CEPH_OSD_OBJECT_QUERY, NULL, NULL, NULL);
+		query_ops[op->target.target_oid.name].push_back(query);
+		int up_primary, acting_primary;
+		vector<int> up, acting;
+		osdmap->pg_to_up_acting_osds(query->target.pgid, &up, &up_primary,
+					       &acting, &acting_primary);
+		query->target.osd = acting_primary;
+
+		OSDSession *s = NULL;
+		// Try to get a session, including a retry if we need to take write lock
+		int r = _get_session(op->target.osd, &s, lc);
+		if (r == -EAGAIN) {
+			assert(s == NULL);
+			lc.promote();
+			r = _get_session(op->target.osd, &s, lc);
+		}
+		assert(r == 0);
+		assert(s);  // may be homeless
+
+		MOSDOp *m = NULL;
+		m = _prepare_osd_op(op);
+		s->lock.get_write();
+		_session_op_assign(s, op);
+		_send_op(op, m);
+		// Last chance to touch Op here, after giving up session lock it can be
+		// freed at any time by response handler.
+		op = NULL;
+		s->lock.unlock();
+		put_session(s);
+	}
+}
 ceph_tid_t Objecter::_op_submit(Op *op, RWLock::Context& lc)
 {
   assert(rwlock.is_locked());
@@ -1736,7 +1770,13 @@ ceph_tid_t Objecter::_op_submit(Op *op, RWLock::Context& lc)
   assert(op->session == NULL);
   OSDSession *s = NULL;
 
-  bool const check_for_latest_map = _calc_target(&op->target) == RECALC_OP_TARGET_POOL_DNE;
+  int r_calc_target = _calc_target(&op->target);
+  bool const check_for_latest_map = r_calc_target == RECALC_OP_TARGET_POOL_DNE;
+  if (r_calc_target == RECALC_OP_TARGET_NEED_RESEND){
+	  unchosen_ops[op->target.target_oid.name].push_back(op);
+	  choose_pg(op);
+  }
+
 
   // Try to get a session, including a retry if we need to take write lock
   int r = _get_session(op->target.osd, &s, lc);
@@ -2065,7 +2105,10 @@ int Objecter::_calc_target(op_target_t *t, bool any_change)
   }
   if (pg_choice.find(t->target_oid.name) != pg_choice.end())
 	  pgid = pg_choice[t->target_oid.name];
-  pgid = choose_pg(pgid);
+  else {
+	  t->pgid = pgid;
+	  return RECALC_OP_TARGET_NEED_RESEND;
+  }
 
   int min_size = pi->min_size;
   unsigned pg_num = pi->get_pg_num();
@@ -2517,7 +2560,12 @@ void Objecter::unregister_op(Op *op)
 void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 {
   ldout(cct, 10) << "in handle_osd_op_reply" << dendl;
+  if (m->result == -ENOENT){
 
+  }
+  else if (m->result == ENOENT){
+
+  }
   // get pio
   ceph_tid_t tid = m->get_tid();
 
