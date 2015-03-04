@@ -1368,8 +1368,13 @@ void ReplicatedPG::do_op(OpRequestRef& op)
   MOSDOp *m = static_cast<MOSDOp*>(op->get_req());
   assert(m->get_header().type == CEPH_MSG_OSD_OP);
   if (m->flags && CEPH_OSD_OBJECT_QUERY){
-	  	hobject_t ho;
-	  	ho.oid = m->oid;
+
+	  hobject_t ho(m->get_oid(),
+			m->get_object_locator().key,
+			m->get_snapid(),
+			m->get_pg().ps(),
+			m->get_object_locator().get_pool(),
+			m->get_object_locator().nspace);
 		ObjectContextRef t_sobc = get_object_context(ho, false);
 		if (!t_sobc) {
 		    osd->reply_op_error(op, -ENOENT);
