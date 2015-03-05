@@ -2567,7 +2567,7 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 	  if (unfound_pg[m->get_oid()] == 3){
 		  pg_choice[m->get_oid()] = osdmap->get_local_pg(unchosen_ops[m->get_oid()][0]->target.pgid,unchosen_ops[m->get_oid()][0]->target.hint, unchosen_ops[m->get_oid()][0]->target.target_oloc);
 		  RWLock::Context lc(rwlock, RWLock::Context::TakenForWrite);
-		  vector<Op*> ops = *(unchosen_ops.find(m->get_oid()));
+		  vector<Op*> ops = unchosen_ops.find(m->get_oid())->second;
 		  for (int i = 0; i < int(ops.size()); i++){
 			  _op_submit(ops[i], lc);
 		  }
@@ -2577,7 +2577,7 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
   else if (m->get_result() == ENOENT && (m->get_flags() & CEPH_OSD_OBJECT_QUERY)){
 	  pg_choice[m->get_oid()] == m->get_pg();
 	  RWLock::Context lc(rwlock, RWLock::Context::TakenForWrite);
-	  vector<Op*> ops = *(unchosen_ops.find(m->get_oid()));
+	  vector<Op*> ops = unchosen_ops.find(m->get_oid())->second;
 	  for (int i = 0; i < int(ops.size()); i++){
 		  _op_submit(ops[i], lc);
 	  }
