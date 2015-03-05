@@ -2566,20 +2566,22 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 	  unfound_pg[m->oid] += 1;
 	  if (unfound_pg == 3){
 		  pg_choice[m->oid] = osdmap->get_local_pg(unchosen_ops[m->oid][0]->target.pgid,unchosen_ops[m->oid][0]->target.hint, unchosen_ops[m->oid][0]->target.target_oloc);
-		  RWLock::Context lc(rwlock);
+		  RWLock::Context lc(rwlock, RWLock::Context::TakenForWrite);
 		  vector<Op*> ops = unchosen_ops.find(m->oid);
 		  for (int i = 0; i < ops.size(); i++){
 			  _op_submit(ops[i], lc);
 		  }
+		  unchosen_ops.erase(m->oid);
 	  }
   }
   else if (m->result == ENOENT && (m->flags & CEPH_OSD_OBJECT_QUERY)){
 	  pg_choice[m->oid] == m->pgid;
-	  RWLock::Context lc(rwlock);
+	  RWLock::Context lc(rwlock, RWLock::Context::TakenForWrite);
 	  vector<Op*> ops = unchosen_ops.find(m->oid);
 	  for (int i = 0; i < ops.size(); i++){
 		  _op_submit(ops[i], lc);
 	  }
+	  unchosen_ops.erase(m->oid);
   }
   // get pio
   ceph_tid_t tid = m->get_tid();

@@ -1578,8 +1578,8 @@ public:
 
  private:
   map<uint64_t, LingerOp*>  linger_ops;
-  ceph::unordered_map<object_t,vector<Op*>> unchosen_ops;
-  ceph::unordered_map<object_t,vector<Op*>> query_ops;
+  ceph::unordered_map<object_t,vector<Op*> > unchosen_ops;
+  ceph::unordered_map<object_t,vector<Op*> > query_ops;
 
   map<ceph_tid_t,PoolStatOp*>    poolstat_ops;
   map<ceph_tid_t,StatfsOp*>      statfs_ops;

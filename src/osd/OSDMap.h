@@ -853,7 +853,12 @@ public:
 		  pgs.push_back(pgid);
 	  }
 	  crush->find_primary_with_hint_string(osds, primary, hint);
-	  return pgs[find(osds->begin(), osds->end(), primary) - osds->begin()];
+	  for (int i = 0; i < 3; i++){
+		  if (osds[i] == primary){
+			  return pgs[i];
+		  }
+	  }
+	  return pgs[0];
   }
 private:
 	void print_osd_line(int cur, ostream *out, Formatter *f) const;
