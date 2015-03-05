@@ -2562,26 +2562,26 @@ void Objecter::unregister_op(Op *op)
 void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 {
   ldout(cct, 10) << "in handle_osd_op_reply" << dendl;
-  if (m->result == -ENOENT && (m->flags & CEPH_OSD_OBJECT_QUERY)){
-	  unfound_pg[m->oid] += 1;
+  if (m->get_result() == -ENOENT && (m->get_flags() & CEPH_OSD_OBJECT_QUERY)){
+	  unfound_pg[m->get_oid()] += 1;
 	  if (unfound_pg == 3){
-		  pg_choice[m->oid] = osdmap->get_local_pg(unchosen_ops[m->oid][0]->target.pgid,unchosen_ops[m->oid][0]->target.hint, unchosen_ops[m->oid][0]->target.target_oloc);
+		  pg_choice[m->get_oid()] = osdmap->get_local_pg(unchosen_ops[m->get_oid()][0]->target.pgid,unchosen_ops[m->get_oid()][0]->target.hint, unchosen_ops[m->get_oid()][0]->target.target_oloc);
 		  RWLock::Context lc(rwlock, RWLock::Context::TakenForWrite);
-		  vector<Op*> ops = unchosen_ops.find(m->oid);
+		  vector<Op*> ops = unchosen_ops.find(m->get_oid());
 		  for (int i = 0; i < ops.size(); i++){
 			  _op_submit(ops[i], lc);
 		  }
-		  unchosen_ops.erase(m->oid);
+		  unchosen_ops.erase(m->get_oid());
 	  }
   }
-  else if (m->result == ENOENT && (m->flags & CEPH_OSD_OBJECT_QUERY)){
-	  pg_choice[m->oid] == m->pgid;
+  else if (m->get_result() == ENOENT && (m->get_flags() & CEPH_OSD_OBJECT_QUERY)){
+	  pg_choice[m->get_oid()] == m->get_pg();
 	  RWLock::Context lc(rwlock, RWLock::Context::TakenForWrite);
-	  vector<Op*> ops = unchosen_ops.find(m->oid);
+	  vector<Op*> ops = unchosen_ops.find(m->get_oid());
 	  for (int i = 0; i < ops.size(); i++){
 		  _op_submit(ops[i], lc);
 	  }
-	  unchosen_ops.erase(m->oid);
+	  unchosen_ops.erase(m->get_oid());
   }
   // get pio
   ceph_tid_t tid = m->get_tid();
