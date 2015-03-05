@@ -854,7 +854,7 @@ public:
 	  }
 	  crush->find_primary_with_hint_string(osds, primary, hint);
 	  for (int i = 0; i < 3; i++){
-		  if (osds->at(i) == &primary){
+		  if (osds->at(i) == *primary){
 			  return pgs[i];
 		  }
 	  }
