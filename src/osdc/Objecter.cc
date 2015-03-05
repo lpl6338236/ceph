@@ -1731,7 +1731,7 @@ pg_t Objecter::choose_pg(Op* op){
 		RWLock::Context lc(rwlock, RWLock::Context::TakenForRead);
 		Op* query = new Op(op->target.target_oid, op->target.target_oloc, NULL, CEPH_OSD_OBJECT_QUERY, NULL, NULL, NULL);
 		query_ops[op->target.target_oid].push_back(query);
-		query->target.pgid = pg_t((op->target.pgid.m_seed + i) % osdmap->get_pg_pool(op->target.target_oloc.get_pool()))->pg_num, op->target.pgid.m_pool);
+		query->target.pgid = pg_t((op->target.pgid.m_seed + i) % osdmap->get_pg_pool(op->target.target_oloc.get_pool())->get_pg_num()), op->target.pgid.m_pool);
 		int up_primary, acting_primary;
 		vector<int> up, acting;
 		osdmap->pg_to_up_acting_osds(query->target.pgid, &up, &up_primary,
