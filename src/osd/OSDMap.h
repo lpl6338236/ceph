@@ -841,7 +841,7 @@ public:
 
   pg_t get_local_pg(pg_t start_pgid, char* hint, object_locator_t oloc){
 	  vector<int> *osds;
-	  int* primary;
+	  int primary = -1;
 	  vector<pg_t> pgs;
 	  for (int i = 0; i < 3; i++){
 		  int up_primary, acting_primary;
@@ -852,7 +852,7 @@ public:
 		  osds->push_back(acting_primary);
 		  pgs.push_back(pgid);
 	  }
-	  crush->find_primary_with_hint_string(osds, primary, hint);
+	  crush->find_primary_with_hint_string(osds, &primary, hint);
 	  for (int i = 0; i < 3; i++){
 		  if (osds->at(i) == *primary){
 			  return pgs[i];

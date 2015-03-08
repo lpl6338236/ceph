@@ -1726,10 +1726,11 @@ ceph_tid_t Objecter::_op_submit_with_budget(Op *op, RWLock::Context& lc, int *ct
   return tid;
 }
 
-pg_t Objecter::choose_pg(Op* op){
+void Objecter::choose_pg(Op* op){
 	for (int i = 0; i < 3; i++){
 		RWLock::Context lc(rwlock, RWLock::Context::TakenForRead);
-		Op* query = new Op(op->target.target_oid, op->target.target_oloc, vector<OSDOp>(), static_cast<int>(CEPH_OSD_OBJECT_QUERY), 0, 0, NULL);
+		vector<OSDOp> tmp_ops = new vector<OSDOp>();
+		Op* query = new Op(op->target.target_oid, op->target.target_oloc, tmp_ops, static_cast<int>(CEPH_OSD_OBJECT_QUERY), 0, 0, NULL);
 		query_ops[op->target.target_oid].push_back(query);
 		query->target.pgid = pg_t((op->target.pgid.m_seed + i) % osdmap->get_pg_pool(op->target.target_oloc.get_pool())->get_pg_num(), op->target.pgid.m_pool);
 		int up_primary, acting_primary;

@@ -1162,7 +1162,7 @@ public:
     /// the very first OP of the series and released upon receiving the last OP reply.
     bool ctx_budgeted;
 
-    Op(const object_t& o, const object_locator_t& ol, vector<OSDOp> op,
+    Op(const object_t& o, const object_locator_t& ol, vector<OSDOp>& op,
        int f, Context *ac, Context *co, version_t *ov) :
       session(NULL), incarnation(0),
       target(o, ol, f),
@@ -1598,7 +1598,7 @@ public:
 
   double mon_timeout, osd_timeout;
 
-  pg_t choose_pg(Op* op);
+  void choose_pg(Op* op);
   MOSDOp *_prepare_osd_op(Op *op);
   void _send_op(Op *op, MOSDOp *m = NULL);
   void _cancel_linger_op(Op *op);
