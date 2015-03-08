@@ -1162,7 +1162,7 @@ public:
     /// the very first OP of the series and released upon receiving the last OP reply.
     bool ctx_budgeted;
 
-    Op(const object_t& o, const object_locator_t& ol, vector<OSDOp>& op,
+    Op(const object_t& o, const object_locator_t& ol, vector<OSDOp> op,
        int f, Context *ac, Context *co, version_t *ov) :
       session(NULL), incarnation(0),
       target(o, ol, f),
