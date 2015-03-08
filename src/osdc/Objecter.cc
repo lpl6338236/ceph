@@ -1741,23 +1741,25 @@ void Objecter::choose_pg(Op* op){
 
 		OSDSession *s = NULL;
 		// Try to get a session, including a retry if we need to take write lock
-		int r = _get_session(op->target.osd, &s, lc);
+		int r = _get_session(query->target.osd, &s, lc);
 		if (r == -EAGAIN) {
 			assert(s == NULL);
 			lc.promote();
-			r = _get_session(op->target.osd, &s, lc);
+			r = _get_session(query->target.osd, &s, lc);
 		}
 		assert(r == 0);
 		assert(s);  // may be homeless
 
 		MOSDOp *m = NULL;
-		m = _prepare_osd_op(op);
+		m = _prepare_osd_op(query);
 		s->lock.get_write();
-		_session_op_assign(s, op);
-		_send_op(op, m);
-		// Last chance to touch Op here, after giving up session lock it can be
+		if (op->tid == 0)
+		    op->tid = last_tid.inc();
+		_session_op_assign(s, query);
+		_send_op(query, m);
+		// Last chance to touch query here, after giving up session lock it can be
 		// freed at any time by response handler.
-		op = NULL;
+		query = NULL;
 		s->lock.unlock();
 		put_session(s);
 	}
