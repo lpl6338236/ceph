@@ -1753,8 +1753,8 @@ void Objecter::choose_pg(Op* op){
 		MOSDOp *m = NULL;
 		m = _prepare_osd_op(query);
 		s->lock.get_write();
-		if (op->tid == 0)
-		    op->tid = last_tid.inc();
+		if (query->tid == 0)
+		    query->tid = last_tid.inc();
 		_session_op_assign(s, query);
 		_send_op(query, m);
 		// Last chance to touch query here, after giving up session lock it can be
