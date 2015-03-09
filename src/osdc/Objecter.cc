@@ -2576,12 +2576,12 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
   if (m->get_result() == -ENOENT && (m->get_flags() & CEPH_OSD_OBJECT_QUERY)){
 	  unfound_pg[m->get_oid()] += 1;
 	  if (unfound_pg[m->get_oid()] == 3){
-		  cout << "1" << std::endl;
-		  pg_choice[m->get_oid()] = osdmap->get_local_pg(unchosen_ops[m->get_oid()][0]->target.pgid,unchosen_ops[m->get_oid()][0]->target.hint, unchosen_ops[m->get_oid()][0]->target.target_oloc);
 		  cout << "2" << std::endl;
 		  RWLock::Context lc(rwlock, RWLock::Context::TakenForWrite);
 		  cout << "3" << std::endl;
 		  vector<Op*> ops = unchosen_ops.find(m->get_oid())->second;
+		  cout << "1" << ops.size()<< std::endl;
+		  pg_choice[m->get_oid()] = osdmap->get_local_pg(ops[0]->target.pgid,ops[0]->target.hint, ops[0]->target.target_oloc);
 		  cout << "4" << std::endl;
 		  for (int i = 0; i < int(ops.size()); i++){
 			  _op_submit(ops[i], lc);

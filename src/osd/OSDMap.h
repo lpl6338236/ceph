@@ -840,6 +840,7 @@ public:
   }
 
   pg_t get_local_pg(pg_t start_pgid, char* hint, object_locator_t oloc){
+	  cout <<"get_local_pg"<<std::endl;
 	  vector<int> *osds;
 	  int primary = -1;
 	  vector<pg_t> pgs;
