@@ -1730,7 +1730,7 @@ void Objecter::choose_pg(Op* op){
 	for (int i = 0; i < 3; i++){
 		RWLock::Context lc(rwlock, RWLock::Context::TakenForRead);
 		vector<OSDOp> tmp_ops;
-		Op* query = new Op(op->target.target_oid, op->target.target_oloc, tmp_ops, static_cast<int>(CEPH_OSD_OBJECT_QUERY), 0, 0, NULL);
+		Op* query = new Op(op->target.base_oid, op->target.base_oloc, tmp_ops, static_cast<int>(CEPH_OSD_OBJECT_QUERY), 0, 0, NULL);
 		query->snapid = CEPH_NOSNAP;
 		query_ops[op->target.target_oid].push_back(query);
 		query->target.pgid = pg_t((op->target.pgid.m_seed + i) % osdmap->get_pg_pool(op->target.target_oloc.get_pool())->get_pg_num(), op->target.pgid.m_pool);
