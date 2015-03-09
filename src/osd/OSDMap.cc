@@ -1574,7 +1574,9 @@ void OSDMap::pg_to_raw_up(pg_t pg, vector<int> *up, int *primary) const {
 ////This provides HINT! for where to store the data
 void OSDMap::_pg_to_up_acting_osds(const pg_t& pg, vector<int> *up,
 		int *up_primary, vector<int> *acting, int *acting_primary, char* hint) const {
+	cout << "*1" << std::endl;
 	const pg_pool_t *pool = get_pg_pool(pg.pool());
+	cout << "*6" << std::endl;
 	if (!pool) {
 		if (up)
 			up->clear();
@@ -1586,6 +1588,7 @@ void OSDMap::_pg_to_up_acting_osds(const pg_t& pg, vector<int> *up,
 			*acting_primary = -1;
 		return;
 	}
+	cout << "*2" << std::endl;
 	vector<int> raw;
 	vector<int> _up;
 	vector<int> _acting;
@@ -1593,13 +1596,17 @@ void OSDMap::_pg_to_up_acting_osds(const pg_t& pg, vector<int> *up,
 	int _acting_primary;
 	ps_t pps;
 	_pg_to_osds(*pool, pg, &raw, &_up_primary, &pps);
+	cout << "*3" << std::endl;
 	_raw_to_up_osds(*pool, raw, &_up, &_up_primary);
+	cout << "*1" << std::endl;
 	if (hint != NULL) {
 		_up_primary = -1;
 		_apply_primary_affinity(pps, *pool, &_up, &_up_primary, hint);
 	}
 	else _apply_primary_affinity(pps, *pool, &_up, &_up_primary);
+	cout << "*1" << std::endl;
 	_get_temp_osds(*pool, pg, &_acting, &_acting_primary);
+	cout << "*4" << std::endl;
 	if (_acting.empty()) {
 		_acting = _up;
 		if (_acting_primary == -1) {
@@ -1614,6 +1621,7 @@ void OSDMap::_pg_to_up_acting_osds(const pg_t& pg, vector<int> *up,
 		acting->swap(_acting);
 	if (acting_primary)
 		*acting_primary = _acting_primary;
+	cout << "*5" << std::endl;
 }
 
 int OSDMap::calc_pg_rank(int osd, const vector<int>& acting, int nrep) {
