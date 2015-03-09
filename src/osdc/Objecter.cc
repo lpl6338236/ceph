@@ -1778,7 +1778,7 @@ ceph_tid_t Objecter::_op_submit(Op *op, RWLock::Context& lc)
   int r_calc_target = _calc_target(&op->target);
   bool const check_for_latest_map = r_calc_target == RECALC_OP_TARGET_POOL_DNE;
   if (r_calc_target == RECALC_OP_TARGET_NEED_CHOOSE_PG){
-	  cout << "choose_pg"<<std::endl;
+	  cout << "choose_pg"<<op->target.target_oid.name<<std::endl;
 	  unchosen_ops[op->target.target_oid].push_back(op);
 	  unfound_pg[op->target.target_oid] = 0;
 	  choose_pg(op);
@@ -2578,7 +2578,7 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 	  if (unfound_pg[m->get_oid()] == 3){
 		  cout << "2" << std::endl;
 		  RWLock::Context lc(rwlock, RWLock::Context::TakenForWrite);
-		  cout << "3" << std::endl;
+		  cout << m->get_oid().name<<std::endl;
 		  vector<Op*> ops = unchosen_ops.find(m->get_oid())->second;
 		  cout << "1" << ops.size()<< std::endl;
 		  pg_choice[m->get_oid()] = osdmap->get_local_pg(ops[0]->target.pgid,ops[0]->target.hint, ops[0]->target.target_oloc);
