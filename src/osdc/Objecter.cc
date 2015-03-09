@@ -2579,6 +2579,7 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 	  unfound_pg[m->get_oid()] += 1;
 	  if (unfound_pg[m->get_oid()] == 3){
 		  cout << "2" << std::endl;
+		  RWLock::RLocker rl(rwlock);
 		  RWLock::Context lc(rwlock, RWLock::Context::TakenForWrite);
 		  cout << m->get_oid().name<<std::endl;
 		  vector<Op*> ops = unchosen_ops.find(m->get_oid())->second;
