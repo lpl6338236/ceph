@@ -851,8 +851,8 @@ public:
 		  cout << "pg_to_up" << std::endl;
 		  pg_to_up_acting_osds(pgid, &up, &up_primary,
 		  					       &acting, &acting_primary);
-		  cout << "push"<<std::endl;
-		  osds->push_back(acting_primary);
+		  cout << up_primary<<std::endl;
+		  osds->push_back(up_primary);
 		  cout << "push"<<std::endl;
 		  pgs.push_back(pgid);
 	  }
