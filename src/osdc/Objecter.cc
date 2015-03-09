@@ -1777,12 +1777,14 @@ ceph_tid_t Objecter::_op_submit(Op *op, RWLock::Context& lc)
   int r_calc_target = _calc_target(&op->target);
   bool const check_for_latest_map = r_calc_target == RECALC_OP_TARGET_POOL_DNE;
   if (r_calc_target == RECALC_OP_TARGET_NEED_RESEND){
+	  cout << "choose_pg"<<std::endl;
 	  unchosen_ops[op->target.target_oid].push_back(op);
 	  unfound_pg[op->target.target_oid] = 0;
 	  choose_pg(op);
   }
 
 
+  cout << op->target.osd << "flag" << op->target.flags <<std::endl;
   // Try to get a session, including a retry if we need to take write lock
   int r = _get_session(op->target.osd, &s, lc);
   if (r == -EAGAIN) {
@@ -2108,7 +2110,7 @@ int Objecter::_calc_target(op_target_t *t, bool any_change)
       return RECALC_OP_TARGET_POOL_DNE;
     }
   }
-  if (t->hint != NULL){
+  if (t->hint != NULL && (t->flags & CEPH_OSD_FLAG_HINT)){
 	  if (pg_choice.find(t->target_oid) != pg_choice.end())
 		  pgid = pg_choice[t->target_oid];
 	  else {
