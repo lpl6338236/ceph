@@ -2108,11 +2108,13 @@ int Objecter::_calc_target(op_target_t *t, bool any_change)
       return RECALC_OP_TARGET_POOL_DNE;
     }
   }
-  if (pg_choice.find(t->target_oid) != pg_choice.end())
-	  pgid = pg_choice[t->target_oid];
-  else {
-	  t->pgid = pgid;
-	  return RECALC_OP_TARGET_NEED_RESEND;
+  if (t->hint != NULL){
+	  if (pg_choice.find(t->target_oid) != pg_choice.end())
+		  pgid = pg_choice[t->target_oid];
+	  else {
+		  t->pgid = pgid;
+		  return RECALC_OP_TARGET_NEED_RESEND;
+	  }
   }
 
   int min_size = pi->min_size;
