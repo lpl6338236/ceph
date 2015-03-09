@@ -8503,7 +8503,7 @@ int OSD::init_op_flags(OpRequestRef& op)
   MOSDOp *m = static_cast<MOSDOp*>(op->get_req());
   vector<OSDOp>::iterator iter;
 
-	if (m->get_flags() & CEPH_OSD_PG_QUERY){
+	if (m->get_flags() & CEPH_OSD_OBJECT_QUERY){
 		return 0;
 	}
   // client flags have no bearing on whether an op is a read, write, etc.
