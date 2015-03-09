@@ -1731,6 +1731,7 @@ void Objecter::choose_pg(Op* op){
 		RWLock::Context lc(rwlock, RWLock::Context::TakenForRead);
 		vector<OSDOp> tmp_ops;
 		Op* query = new Op(op->target.target_oid, op->target.target_oloc, tmp_ops, static_cast<int>(CEPH_OSD_OBJECT_QUERY), 0, 0, NULL);
+		query->snapid = CEPH_NOSNAP;
 		query_ops[op->target.target_oid].push_back(query);
 		query->target.pgid = pg_t((op->target.pgid.m_seed + i) % osdmap->get_pg_pool(op->target.target_oloc.get_pool())->get_pg_num(), op->target.pgid.m_pool);
 		int up_primary, acting_primary;
@@ -1781,6 +1782,7 @@ ceph_tid_t Objecter::_op_submit(Op *op, RWLock::Context& lc)
 	  unchosen_ops[op->target.target_oid].push_back(op);
 	  unfound_pg[op->target.target_oid] = 0;
 	  choose_pg(op);
+	  return op->tid;
   }
 
 
