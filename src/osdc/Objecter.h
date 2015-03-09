@@ -1616,6 +1616,7 @@ public:
     RECALC_OP_TARGET_POOL_DNE,
     RECALC_OP_TARGET_OSD_DNE,
     RECALC_OP_TARGET_OSD_DOWN,
+    RECALC_OP_TARGET_NEED_CHOOSE_PG,
   };
   bool osdmap_full_flag() const;
 
