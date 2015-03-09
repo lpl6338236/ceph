@@ -772,7 +772,6 @@ int create_v2(IoCtx& io_ctx, const char *imgname, uint64_t bid, uint64_t size,
 	CephContext *cct = (CephContext *) io_ctx.cct();
 
 	id_obj = id_obj_name(imgname);
-	cout << "create id_obj"<<std::endl;
 	int r = io_ctx.create(id_obj, true);
 	if (r < 0) {
 		lderr(cct)
@@ -784,7 +783,6 @@ int create_v2(IoCtx& io_ctx, const char *imgname, uint64_t bid, uint64_t size,
 	extra = rand() % 0xFFFFFFFF;
 	bid_ss << std::hex << bid << std::hex << extra;
 	id = bid_ss.str();
-	cout << "set id"<<std::endl;
 	r = cls_client::set_id(&io_ctx, id_obj, id);
 	if (r < 0) {
 		lderr(cct)
@@ -794,7 +792,6 @@ int create_v2(IoCtx& io_ctx, const char *imgname, uint64_t bid, uint64_t size,
 
 	ldout(cct, 2)
 				<< "adding rbd image to directory..." << dendl;
-	cout << "add image"<<std::endl;
 	r = cls_client::dir_add_image(&io_ctx, RBD_DIRECTORY, imgname, id);
 	if (r < 0) {
 		lderr(cct)
@@ -805,7 +802,6 @@ int create_v2(IoCtx& io_ctx, const char *imgname, uint64_t bid, uint64_t size,
 
 	oss << RBD_DATA_PREFIX << id;
 	header_oid = header_name(id);
-	cout << "create image"<<std::endl;
 	r = cls_client::create_image(&io_ctx, header_oid, size, order, features,
 			oss.str());
 	if (r < 0) {
