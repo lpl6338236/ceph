@@ -2129,7 +2129,7 @@ int Objecter::_calc_target(op_target_t *t, bool any_change)
   int up_primary, acting_primary;
   vector<int> up, acting;
   osdmap->pg_to_up_acting_osds(pgid, &up, &up_primary,
-			       &acting, &acting_primary, t->hint);
+			       &acting, &acting_primary);
   if (any_change && pg_interval_t::is_new_interval(
           t->acting_primary,
 	  acting_primary,
