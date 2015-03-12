@@ -1728,7 +1728,7 @@ ceph_tid_t Objecter::_op_submit_with_budget(Op *op, RWLock::Context& lc, int *ct
 
 void Objecter::choose_pg(Op* op){
 	for (int i = 0; i < 3; i++){
-		RWLock::Context lc(rwlock, RWLock::Context::TakenForRead);
+		RWLock::Context lc(rwlock, RWLock::Context::TakenForWrite);
 		vector<OSDOp> tmp_ops;
 		Op* query = new Op(op->target.target_oid, op->target.target_oloc, tmp_ops, static_cast<int>(CEPH_OSD_OBJECT_QUERY), 0, 0, NULL);
 		query->snapid = CEPH_NOSNAP;
@@ -2575,10 +2575,10 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 {
   ldout(cct, 10) << "in handle_osd_op_reply" << dendl;
   if (m->get_result() == -ENOENT && (m->get_flags() & CEPH_OSD_OBJECT_QUERY)){
+	  RWLock::WLocker rl(rwlock);
+	  RWLock::Context lc(rwlock, RWLock::Context::TakenForRead);
 	  unfound_pg[m->get_oid()] += 1;
 	  if (unfound_pg[m->get_oid()] == 3){
-		  RWLock::RLocker rl(rwlock);
-		  RWLock::Context lc(rwlock, RWLock::Context::TakenForWrite);
 		  cout << m->get_oid().name<<std::endl;
 		  vector<Op*> ops = unchosen_ops.find(m->get_oid())->second;
 		  pg_choice[m->get_oid()] = osdmap->get_local_pg(ops[0]->target.pgid,ops[0]->target.hint, ops[0]->target.target_oloc);
@@ -2589,8 +2589,9 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 	  }
   }
   else if (m->get_result() == ENOENT && (m->get_flags() & CEPH_OSD_OBJECT_QUERY)){
+	  RWLock::WLocker rl(rwlock);
+	  RWLock::Context lc(rwlock, RWLock::Context::TakenForRead);
 	  pg_choice[m->get_oid()] = m->get_pg();
-	  RWLock::Context lc(rwlock, RWLock::Context::TakenForWrite);
 	  vector<Op*> ops = unchosen_ops.find(m->get_oid())->second;
 	  for (int i = 0; i < int(ops.size()); i++){
 		  _op_submit(ops[i], lc);
