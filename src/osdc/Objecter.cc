@@ -1780,7 +1780,6 @@ ceph_tid_t Objecter::_op_submit(Op *op, RWLock::Context& lc)
   int r_calc_target = _calc_target(&op->target);
   bool const check_for_latest_map = r_calc_target == RECALC_OP_TARGET_POOL_DNE;
   if (r_calc_target == RECALC_OP_TARGET_NEED_CHOOSE_PG){
-	  cout << "choose_pg"<<op->target.target_oid.name<<std::endl;
 	  unchosen_ops[op->target.target_oid].push_back(op);
 	  unfound_pg[op->target.target_oid] = 0;
 	  choose_pg(op);
@@ -2578,24 +2577,19 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
   if (m->get_result() == -ENOENT && (m->get_flags() & CEPH_OSD_OBJECT_QUERY)){
 	  unfound_pg[m->get_oid()] += 1;
 	  if (unfound_pg[m->get_oid()] == 3){
-		  cout << "2" << std::endl;
 		  RWLock::RLocker rl(rwlock);
 		  RWLock::Context lc(rwlock, RWLock::Context::TakenForWrite);
 		  cout << m->get_oid().name<<std::endl;
 		  vector<Op*> ops = unchosen_ops.find(m->get_oid())->second;
-		  cout << "1" << ops.size()<< std::endl;
 		  pg_choice[m->get_oid()] = osdmap->get_local_pg(ops[0]->target.pgid,ops[0]->target.hint, ops[0]->target.target_oloc);
-		  cout << "4" << std::endl;
 		  for (int i = 0; i < int(ops.size()); i++){
 			  _op_submit(ops[i], lc);
-		  cout << "5" << std::endl;
 		  }
 		  unchosen_ops.erase(m->get_oid());
-		  cout << "6" << std::endl;
 	  }
   }
   else if (m->get_result() == ENOENT && (m->get_flags() & CEPH_OSD_OBJECT_QUERY)){
-	  pg_choice[m->get_oid()] == m->get_pg();
+	  pg_choice[m->get_oid()] = m->get_pg();
 	  RWLock::Context lc(rwlock, RWLock::Context::TakenForWrite);
 	  vector<Op*> ops = unchosen_ops.find(m->get_oid())->second;
 	  for (int i = 0; i < int(ops.size()); i++){

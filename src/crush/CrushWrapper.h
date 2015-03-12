@@ -949,13 +949,11 @@ public:
 
   void find_primary_with_hint_string(vector<int> *osds, int *primary, char* hint){
 
-	  printf("start\n");
       if (!name_exists(hint)){
     	  *primary = osds->at(0);
     	  return;
       }
       int hint_pos = get_item_id(hint);
-      printf("pos %d\n",hint_pos);
 	  if (hint_pos > crush->max_devices) {
 		  *primary = osds->at(0);
 		  return;

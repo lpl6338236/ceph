@@ -840,7 +840,6 @@ public:
   }
 
   pg_t get_local_pg(pg_t start_pgid, char* hint, object_locator_t oloc){
-	  cout <<"get_local_pg"<<std::endl;
 	  vector<int> *osds = new vector<int>();
 	  int primary = -1;
 	  vector<pg_t> pgs;
@@ -848,19 +847,14 @@ public:
 		  int up_primary, acting_primary;
 		  vector<int> up, acting;
 		  pg_t pgid = raw_pg_to_pg(pg_t((start_pgid.m_seed + i), start_pgid.m_pool));
-		  cout << "pg_to_up" << std::endl;
 		  pg_to_up_acting_osds(pgid, &up, &up_primary,
 		  					       &acting, &acting_primary);
-		  cout << up_primary<<std::endl;
 		  osds->push_back(up_primary);
-		  cout << "push"<<std::endl;
 		  pgs.push_back(pgid);
 	  }
 	  crush->find_primary_with_hint_string(osds, &primary, hint);
-		  cout << "find"<<std::endl;
 	  for (int i = 0; i < 3; i++){
 		  if (osds->at(i) == primary){
-		  cout << "primary"<<std::endl;
 			  return pgs[i];
 		  }
 	  }
