@@ -1787,7 +1787,6 @@ ceph_tid_t Objecter::_op_submit(Op *op, RWLock::Context& lc)
   }
 
 
-  cout << op->target.osd << "flag" << op->target.flags<<"name"<<op->target.target_oid.name <<std::endl;
   // Try to get a session, including a retry if we need to take write lock
   int r = _get_session(op->target.osd, &s, lc);
   if (r == -EAGAIN) {
@@ -2116,7 +2115,6 @@ int Objecter::_calc_target(op_target_t *t, bool any_change)
   if (t->hint != NULL && (t->flags & CEPH_OSD_FLAG_HINT)){
 	  if (pg_choice.find(t->target_oid) != pg_choice.end()){
 		  pgid = pg_choice[t->target_oid];
-		  cout << "pg_choice hit" << pgid << std::endl;
 	  }
 	  else {
 		  t->pgid = pgid;
@@ -2579,7 +2577,6 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 	  RWLock::Context lc(rwlock, RWLock::Context::TakenForRead);
 	  unfound_pg[m->get_oid()] += 1;
 	  if (unfound_pg[m->get_oid()] == 3){
-		  cout << m->get_oid().name<<std::endl;
 		  vector<Op*> ops = unchosen_ops.find(m->get_oid())->second;
 		  pg_choice[m->get_oid()] = osdmap->get_local_pg(ops[0]->target.pgid,ops[0]->target.hint, ops[0]->target.target_oloc);
 		  for (int i = 0; i < int(ops.size()); i++){
