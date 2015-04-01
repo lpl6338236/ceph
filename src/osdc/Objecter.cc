@@ -1794,6 +1794,7 @@ ceph_tid_t Objecter::_op_submit(Op *op, RWLock::Context& lc)
     lc.promote();
     r = _get_session(op->target.osd, &s, lc);
   }
+  cout << op->target.osd <<std::endl;
   assert(r == 0);
   assert(s);  // may be homeless
 
