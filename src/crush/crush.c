@@ -172,19 +172,19 @@ int find_primary_recursively(struct crush_map* crush, struct crush_bucket* b, in
 		if (leaf == 0){
 			int r = find_primary_recursively(crush, crush->buckets[-1-b->items[i]], osds, size, primary, hint);
 
-			if (r == 0){
+			if (r == -2){
 				if (*primary != -1) return r;
 				else find_hint = 1;
-			} else if (r > 0){
+			} else if (r >= 0){
 				candidate = r;
 			}
 		}
 
 		if (find_hint == 1 && candidate >= 0){
 			*primary = candidate;
-			return 0;
+			return -2;
 		}
 	}
 	if (find_hint == 0) return candidate;
-	else return 0;
+	else return -2;
 }
