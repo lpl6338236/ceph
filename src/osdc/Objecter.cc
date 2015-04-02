@@ -1727,7 +1727,7 @@ ceph_tid_t Objecter::_op_submit_with_budget(Op *op, RWLock::Context& lc, int *ct
 }
 
 void Objecter::choose_pg(Op* op){
-	cout << "query" <<" ";
+	cout <<op->target.target_oid.name<< " query ";
 	for (int i = 0; i < 3; i++){
 		RWLock::Context lc(rwlock, RWLock::Context::TakenForWrite);
 		vector<OSDOp> tmp_ops;
@@ -1797,7 +1797,7 @@ ceph_tid_t Objecter::_op_submit(Op *op, RWLock::Context& lc)
     lc.promote();
     r = _get_session(op->target.osd, &s, lc);
   }
-  cout << op->target.osd <<std::endl;
+  cout << op->target.target_oid.name<<" "<< op->target.osd <<std::endl;
   assert(r == 0);
   assert(s);  // may be homeless
 
