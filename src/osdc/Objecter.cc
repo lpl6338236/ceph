@@ -1727,7 +1727,6 @@ ceph_tid_t Objecter::_op_submit_with_budget(Op *op, RWLock::Context& lc, int *ct
 }
 
 void Objecter::choose_pg(Op* op){
-	cout <<op->target.target_oid.name<< " query ";
 	for (int i = 0; i < 3; i++){
 		RWLock::Context lc(rwlock, RWLock::Context::TakenForWrite);
 		vector<OSDOp> tmp_ops;
@@ -1742,7 +1741,6 @@ void Objecter::choose_pg(Op* op){
 		osdmap->pg_to_up_acting_osds(query->target.pgid, &up, &up_primary,
 					       &acting, &acting_primary);
 		query->target.osd = acting_primary;
-		cout << acting_primary << " ";
 
 		OSDSession *s = NULL;
 		// Try to get a session, including a retry if we need to take write lock
@@ -1768,7 +1766,6 @@ void Objecter::choose_pg(Op* op){
 		s->lock.unlock();
 		put_session(s);
 	}
-	cout << std::endl;
 }
 ceph_tid_t Objecter::_op_submit(Op *op, RWLock::Context& lc)
 {
@@ -1797,7 +1794,7 @@ ceph_tid_t Objecter::_op_submit(Op *op, RWLock::Context& lc)
     lc.promote();
     r = _get_session(op->target.osd, &s, lc);
   }
-  cout << op->target.target_oid.name<<" "<< op->target.osd <<std::endl;
+  cout << op->target.osd <<std::endl;
   assert(r == 0);
   assert(s);  // may be homeless
 

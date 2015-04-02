@@ -843,7 +843,6 @@ public:
 	  vector<int> *osds = new vector<int>();
 	  int primary = -1;
 	  vector<pg_t> pgs;
-	  cout << "primary ";
 	  for (int i = 0; i < 3; i++){
 		  int up_primary, acting_primary;
 		  vector<int> up, acting;
@@ -851,11 +850,9 @@ public:
 		  pg_to_up_acting_osds(pgid, &up, &up_primary,
 		  					       &acting, &acting_primary);
 		  osds->push_back(acting_primary);
-		  cout << acting_primary << " ";
 		  pgs.push_back(pgid);
 	  }
 	  crush->find_primary_with_hint_string(osds, &primary, hint);
-	  cout <<primary<<std::endl;
 	  for (int i = 0; i < 3; i++){
 		  if (osds->at(i) == primary){
 			  return pgs[i];
