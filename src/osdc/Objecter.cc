@@ -176,9 +176,6 @@ void Objecter::init_crush_location(){
 				 << "' does not parse" << std::endl;
 		    }
 	  }
-	  else{
-		  cout << "empty crush_location"<<std::endl;
-	  }
 }
 
 // messages ------------------------------
@@ -1751,6 +1748,7 @@ void Objecter::choose_pg(Op* op){
 		query->target.target_oloc = query->target.base_oloc;
 		query_ops[op->target.target_oid].push_back(query);
 		pg_t pgid = osdmap->raw_pg_to_pg(pg_t((op->target.pgid.m_seed + i), op->target.pgid.m_pool));
+		query->target.pgid = pgid;
 		int up_primary, acting_primary;
 		vector<int> up, acting;
 		osdmap->pg_to_up_acting_osds(query->target.pgid, &up, &up_primary,

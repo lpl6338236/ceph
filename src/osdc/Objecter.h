@@ -1724,13 +1724,13 @@ public:
     timer(cct, timer_lock, false),
     logger(NULL), tick_event(NULL),
     m_request_state_hook(NULL),
+	pg_choice_num(cct->_conf->pg_choice_num),
     num_homeless_ops(0),
     homeless_session(new OSDSession(cct, -1)),
     mon_timeout(mon_timeout),
     osd_timeout(osd_timeout),
     op_throttle_bytes(cct, "objecter_bytes", cct->_conf->objecter_inflight_op_bytes),
-    op_throttle_ops(cct, "objecter_ops", cct->_conf->objecter_inflight_ops),
-	pg_choice_num(cct->_conf->pg_choice_num)
+    op_throttle_ops(cct, "objecter_ops", cct->_conf->objecter_inflight_ops)
   {
 	  init_crush_location();
   }
