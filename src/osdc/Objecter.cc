@@ -2067,7 +2067,6 @@ int Objecter::_calc_target(op_target_t *t, bool any_change)
 
   if (crush_location.find("host") != crush_location.end())
 	  cout << "crush_location"<<crush_location.find("host")->second<<std::endl;
-  cout << "conf" <<cct->_conf->crush_location<<std::endl;
   bool is_read = t->flags & CEPH_OSD_FLAG_READ;
   bool is_write = t->flags & CEPH_OSD_FLAG_WRITE;
 

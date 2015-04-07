@@ -1729,7 +1729,21 @@ public:
     osd_timeout(osd_timeout),
     op_throttle_bytes(cct, "objecter_bytes", cct->_conf->objecter_inflight_op_bytes),
     op_throttle_ops(cct, "objecter_ops", cct->_conf->objecter_inflight_ops)
-  { }
+  {
+	  if (cct->_conf->crush_location != ""){
+		    crush_location.clear();
+		    vector<string> lvec;
+		    get_str_vec(cct->_conf->crush_location, ";, \t", lvec);
+		    int r = CrushWrapper::parse_loc_multimap(lvec, &crush_location);
+		    if (r < 0) {
+		      cout << "warning: crush_location '" << cct->_conf->crush_location
+				 << "' does not parse" << std::endl;
+		    }
+	  }
+	  else{
+		  cout << "empty crush_location"<<std::endl;
+	  }
+  }
   ~Objecter();
 
   void init();
