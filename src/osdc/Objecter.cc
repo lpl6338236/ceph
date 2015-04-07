@@ -1742,7 +1742,7 @@ ceph_tid_t Objecter::_op_submit_with_budget(Op *op, RWLock::Context& lc, int *ct
 }
 
 void Objecter::choose_pg(Op* op){
-	for (int i = 0; i < 3; i++){
+	for (int i = 0; i < pg_choice_num; i++){
 		RWLock::Context lc(rwlock, RWLock::Context::TakenForWrite);
 		vector<OSDOp> tmp_ops;
 		Op* query = new Op(op->target.target_oid, op->target.target_oloc, tmp_ops, static_cast<int>(CEPH_OSD_OBJECT_QUERY), 0, 0, NULL);
@@ -1750,7 +1750,7 @@ void Objecter::choose_pg(Op* op){
 		query->target.target_oid = query->target.base_oid;
 		query->target.target_oloc = query->target.base_oloc;
 		query_ops[op->target.target_oid].push_back(query);
-		query->target.pgid = pg_t((op->target.pgid.m_seed + i) % osdmap->get_pg_pool(op->target.target_oloc.get_pool())->get_pg_num(), op->target.pgid.m_pool);
+		pg_t pgid = osdmap->raw_pg_to_pg(pg_t((op->target.pgid.m_seed + i), op->target.pgid.m_pool));
 		int up_primary, acting_primary;
 		vector<int> up, acting;
 		osdmap->pg_to_up_acting_osds(query->target.pgid, &up, &up_primary,
@@ -2080,8 +2080,6 @@ int Objecter::_calc_target(op_target_t *t, bool any_change)
 {
   assert(rwlock.is_locked());
 
-  if (crush_location.find("host") != crush_location.end())
-	  cout << "crush_location"<<crush_location.find("host")->second<<std::endl;
   bool is_read = t->flags & CEPH_OSD_FLAG_READ;
   bool is_write = t->flags & CEPH_OSD_FLAG_WRITE;
 
@@ -2591,13 +2589,38 @@ void Objecter::unregister_op(Op *op)
 void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 {
   ldout(cct, 10) << "in handle_osd_op_reply" << dendl;
-  if (m->get_result() == -ENOENT && (m->get_flags() & CEPH_OSD_OBJECT_QUERY)){
+	if (m->get_result() == -ENOENT && (m->get_flags() & CEPH_OSD_OBJECT_QUERY)){
 	  RWLock::WLocker rl(rwlock);
 	  RWLock::Context lc(rwlock, RWLock::Context::TakenForRead);
 	  unfound_pg[m->get_oid()] += 1;
-	  if (unfound_pg[m->get_oid()] == 3){
+	  if (unfound_pg[m->get_oid()] == pg_choice_num){
 		  vector<Op*> ops = unchosen_ops.find(m->get_oid())->second;
-		  pg_choice[m->get_oid()] = osdmap->get_local_pg(ops[0]->target.pgid,ops[0]->target.hint, ops[0]->target.target_oloc);
+		  //pg_choice[m->get_oid()] = osdmap->get_local_pg(ops[0]->target.pgid,ops[0]->target.hint, ops[0]->target.target_oloc);
+		  vector<int> osds;
+		  vector<pg_t> pgs;
+		  for (int i = 0; i < pg_choice_num; i++){
+			  int up_primary, acting_primary;
+			  vector<int> up, acting;
+			  pg_t pgid = osdmap->raw_pg_to_pg(pg_t((ops[0]->target.pgid.m_seed + i), ops[0]->target.pgid.m_pool));
+			  osdmap->pg_to_up_acting_osds(pgid, &up, &up_primary,
+									   &acting, &acting_primary);
+			  osds.push_back(acting_primary);
+			  pgs.push_back(pgid);
+		  }
+			int best = -1;
+			int best_locality = 0;
+			for (unsigned i = 0; i < osds.size(); ++i) {
+				int locality = osdmap->crush->get_common_ancestor_distance(
+				 cct, osds[i], crush_location);
+				if (i == 0 ||
+				  (locality >= 0 && best_locality >= 0 &&
+				   locality < best_locality) ||
+				  (best_locality < 0 && locality >= 0)) {
+					best = i;
+					best_locality = locality;
+				}
+			}
+			pg_choice[m->get_oid()] = pgs[best];
 		  for (int i = 0; i < int(ops.size()); i++){
 			  _op_submit(ops[i], lc);
 		  }

@@ -1580,6 +1580,7 @@ public:
   map<uint64_t, LingerOp*>  linger_ops;
   ceph::unordered_map<object_t,vector<Op*> > unchosen_ops;
   ceph::unordered_map<object_t,vector<Op*> > query_ops;
+  int pg_choice_num;
 
   map<ceph_tid_t,PoolStatOp*>    poolstat_ops;
   map<ceph_tid_t,StatfsOp*>      statfs_ops;
@@ -1728,7 +1729,8 @@ public:
     mon_timeout(mon_timeout),
     osd_timeout(osd_timeout),
     op_throttle_bytes(cct, "objecter_bytes", cct->_conf->objecter_inflight_op_bytes),
-    op_throttle_ops(cct, "objecter_ops", cct->_conf->objecter_inflight_ops)
+    op_throttle_ops(cct, "objecter_ops", cct->_conf->objecter_inflight_ops),
+	pg_choice_num(cct->_conf->pg_choice_num)
   {
 	  init_crush_location();
   }
