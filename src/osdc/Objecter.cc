@@ -1793,7 +1793,7 @@ ceph_tid_t Objecter::_op_submit(Op *op, RWLock::Context& lc)
 
   int r_calc_target = _calc_target(&op->target);
   bool const check_for_latest_map = r_calc_target == RECALC_OP_TARGET_POOL_DNE;
-  if (r_calc_target == RECALC_OP_TARGET_NEED_CHOOSE_PG){
+  if (pg_choice_num >= 1 && r_calc_target == RECALC_OP_TARGET_NEED_CHOOSE_PG){
 	  unchosen_ops[op->target.target_oid].push_back(op);
 	  unfound_pg[op->target.target_oid] = 0;
 	  choose_pg(op);
@@ -2127,7 +2127,7 @@ int Objecter::_calc_target(op_target_t *t, bool any_change)
       return RECALC_OP_TARGET_POOL_DNE;
     }
   }
-  if (t->hint != NULL && (t->flags & CEPH_OSD_FLAG_HINT)){
+  if (pg_choice_num >= 1){
 	  if (pg_choice.find(t->target_oid) != pg_choice.end()){
 		  pgid = pg_choice[t->target_oid];
 	  }
@@ -2587,7 +2587,7 @@ void Objecter::unregister_op(Op *op)
 void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 {
   ldout(cct, 10) << "in handle_osd_op_reply" << dendl;
-	if (m->get_result() == -ENOENT && (m->get_flags() & CEPH_OSD_OBJECT_QUERY)){
+	if (pg_choice_num >= 1 && m->get_result() == -ENOENT && (m->get_flags() & CEPH_OSD_OBJECT_QUERY)){
 	  RWLock::WLocker rl(rwlock);
 	  RWLock::Context lc(rwlock, RWLock::Context::TakenForRead);
 	  unfound_pg[m->get_oid()] += 1;
@@ -2625,7 +2625,7 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 		  unchosen_ops.erase(m->get_oid());
 	  }
   }
-  else if (m->get_result() == ENOENT && (m->get_flags() & CEPH_OSD_OBJECT_QUERY)){
+  else if (pg_choice_num >= 1 && m->get_result() == ENOENT && (m->get_flags() & CEPH_OSD_OBJECT_QUERY)){
 	  RWLock::WLocker rl(rwlock);
 	  RWLock::Context lc(rwlock, RWLock::Context::TakenForRead);
 	  pg_choice[m->get_oid()] = m->get_pg();
