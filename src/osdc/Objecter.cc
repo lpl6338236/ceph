@@ -2806,7 +2806,7 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
   }
 
   // got data?
-  if (op->outbl)) {
+  if (op->outbl) {
     if (op->con)
       op->con->revoke_rx_buffer(op->tid);
     m->claim_data(*op->outbl);
