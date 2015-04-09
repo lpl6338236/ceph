@@ -1741,8 +1741,17 @@ ceph_tid_t Objecter::_op_submit_with_budget(Op *op, RWLock::Context& lc, int *ct
 void Objecter::choose_pg(Op* op){
 	for (int i = 0; i < pg_choice_num; i++){
 		RWLock::Context lc(rwlock, RWLock::Context::TakenForWrite);
-		vector<OSDOp> tmp_ops;
-		Op* query = new Op(op->target.target_oid, op->target.target_oloc, tmp_ops, static_cast<int>(CEPH_OSD_OBJECT_QUERY), 0, 0, NULL);
+
+	    vector<OSDOp> ops;
+	    int i = init_ops(ops, 1, NULL);
+	    ops[i].op.op = CEPH_OSD_OP_READ;
+	    ops[i].op.extent.offset = 0;
+	    ops[i].op.extent.length = len;
+	    ops[i].op.extent.truncate_size = 0;
+	    ops[i].op.extent.truncate_seq = 0;
+		Op* query = new Op(op->target.target_oid, op->target.target_oloc, ops,
+				global_op_flags.read() | CEPH_OSD_FLAG_READ|CEPH_OSD_OBJECT_QUERY, 0, 0, NULL);
+		op->out_bl = NULL;
 		query->snapid = CEPH_NOSNAP;
 		query->target.target_oid = query->target.base_oid;
 		query->target.target_oloc = query->target.base_oloc;
@@ -2623,7 +2632,7 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 		  unchosen_ops.erase(m->get_oid());
 	  }
   }
-  else if (pg_choice_num >= 1 && m->get_result() == ENOENT && (m->get_flags() & CEPH_OSD_OBJECT_QUERY)){
+  else if (pg_choice_num >= 1 && m->get_result() != ENOENT && (m->get_flags() & CEPH_OSD_OBJECT_QUERY)){
 	  RWLock::WLocker rl(rwlock);
 	  RWLock::Context lc(rwlock, RWLock::Context::TakenForRead);
 	  pg_choice[m->get_oid()] = m->get_pg();
