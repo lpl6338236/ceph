@@ -2600,6 +2600,7 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 	  unfound_pg[m->get_oid()] += 1;
 	  if (unfound_pg[m->get_oid()] == pg_choice_num){
 		  vector<Op*> ops = unchosen_ops.find(m->get_oid())->second;
+		  if (ops == unchosen_ops.end()) break;
 		  //pg_choice[m->get_oid()] = osdmap->get_local_pg(ops[0]->target.pgid,ops[0]->target.hint, ops[0]->target.target_oloc);
 		  vector<int> osds;
 		  vector<pg_t> pgs;
@@ -2638,6 +2639,7 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 	  RWLock::Context lc(rwlock, RWLock::Context::TakenForRead);
 	  pg_choice[m->get_oid()] = m->get_pg();
 	  vector<Op*> ops = unchosen_ops.find(m->get_oid())->second;
+	  if (ops == unchosen_ops.end()) break;
 	  for (int i = 0; i < int(ops.size()); i++){
 		  _op_submit(ops[i], lc);
 	  }
