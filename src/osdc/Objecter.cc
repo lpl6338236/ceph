@@ -1753,7 +1753,6 @@ void Objecter::choose_pg(Op* op){
 		vector<int> up, acting;
 		osdmap->pg_to_up_acting_osds(query->target.pgid, &up, &up_primary,
 					       &acting, &acting_primary);
-		cout << "primary " << acting_primary<< " "<<std::endl;
 		query->target.osd = acting_primary;
 
 		OSDSession *s = NULL;
@@ -1808,7 +1807,6 @@ ceph_tid_t Objecter::_op_submit(Op *op, RWLock::Context& lc)
     lc.promote();
     r = _get_session(op->target.osd, &s, lc);
   }
-  cout <<"osd "<< op->target.osd <<" "<<std::endl;
   assert(r == 0);
   assert(s);  // may be homeless
 
