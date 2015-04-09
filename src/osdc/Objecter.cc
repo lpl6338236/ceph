@@ -2600,37 +2600,41 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 	  unfound_pg[m->get_oid()] += 1;
 	  if (unfound_pg[m->get_oid()] == pg_choice_num){
 		  vector<Op*> ops = unchosen_ops.find(m->get_oid())->second;
-		  if (ops == unchosen_ops.end()) break;
-		  //pg_choice[m->get_oid()] = osdmap->get_local_pg(ops[0]->target.pgid,ops[0]->target.hint, ops[0]->target.target_oloc);
-		  vector<int> osds;
-		  vector<pg_t> pgs;
-		  for (int i = 0; i < pg_choice_num; i++){
-			  int up_primary, acting_primary;
-			  vector<int> up, acting;
-			  pg_t pgid = osdmap->raw_pg_to_pg(pg_t((ops[0]->target.pgid.m_seed + i), ops[0]->target.pgid.m_pool));
-			  osdmap->pg_to_up_acting_osds(pgid, &up, &up_primary,
-									   &acting, &acting_primary);
-			  osds.push_back(acting_primary);
-			  pgs.push_back(pgid);
+		  if (ops == unchosen_ops.end()){
+
 		  }
-			int best = -1;
-			int best_locality = 0;
-			for (unsigned i = 0; i < osds.size(); ++i) {
-				int locality = osdmap->crush->get_common_ancestor_distance(
-				 cct, osds[i], crush_location);
-				if (i == 0 ||
-				  (locality >= 0 && best_locality >= 0 &&
-				   locality < best_locality) ||
-				  (best_locality < 0 && locality >= 0)) {
-					best = i;
-					best_locality = locality;
+		  else{
+			  //pg_choice[m->get_oid()] = osdmap->get_local_pg(ops[0]->target.pgid,ops[0]->target.hint, ops[0]->target.target_oloc);
+			  vector<int> osds;
+			  vector<pg_t> pgs;
+			  for (int i = 0; i < pg_choice_num; i++){
+				  int up_primary, acting_primary;
+				  vector<int> up, acting;
+				  pg_t pgid = osdmap->raw_pg_to_pg(pg_t((ops[0]->target.pgid.m_seed + i), ops[0]->target.pgid.m_pool));
+				  osdmap->pg_to_up_acting_osds(pgid, &up, &up_primary,
+										   &acting, &acting_primary);
+				  osds.push_back(acting_primary);
+				  pgs.push_back(pgid);
+			  }
+				int best = -1;
+				int best_locality = 0;
+				for (unsigned i = 0; i < osds.size(); ++i) {
+					int locality = osdmap->crush->get_common_ancestor_distance(
+					 cct, osds[i], crush_location);
+					if (i == 0 ||
+					  (locality >= 0 && best_locality >= 0 &&
+					   locality < best_locality) ||
+					  (best_locality < 0 && locality >= 0)) {
+						best = i;
+						best_locality = locality;
+					}
 				}
-			}
-			pg_choice[m->get_oid()] = pgs[best];
-		  for (int i = 0; i < int(ops.size()); i++){
-			  _op_submit(ops[i], lc);
+				pg_choice[m->get_oid()] = pgs[best];
+			  for (int i = 0; i < int(ops.size()); i++){
+				  _op_submit(ops[i], lc);
+			  }
+			  unchosen_ops.erase(m->get_oid());
 		  }
-		  unchosen_ops.erase(m->get_oid());
 	  }
 
   }
@@ -2639,11 +2643,16 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 	  RWLock::Context lc(rwlock, RWLock::Context::TakenForRead);
 	  pg_choice[m->get_oid()] = m->get_pg();
 	  vector<Op*> ops = unchosen_ops.find(m->get_oid())->second;
-	  if (ops == unchosen_ops.end()) break;
-	  for (int i = 0; i < int(ops.size()); i++){
-		  _op_submit(ops[i], lc);
+	  if (ops == unchosen_ops.end()){
+
 	  }
-	  unchosen_ops.erase(m->get_oid());
+	  else{
+		  for (int i = 0; i < int(ops.size()); i++){
+			  _op_submit(ops[i], lc);
+		  }
+
+		  unchosen_ops.erase(m->get_oid());
+	  }
   }
   // get pio
   ceph_tid_t tid = m->get_tid();
