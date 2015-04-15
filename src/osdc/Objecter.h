@@ -1004,6 +1004,8 @@ public:
 				  const std::set <std::string> &changed);
 
 public:
+  ceph::unordered_map<object_t, pg_t> pg_choice;
+  ceph::unordered_map<object_t, int> unfound_pg;
   Messenger *messenger;
   MonClient *monc;
 private:
@@ -1502,6 +1504,10 @@ public:
  private:
   map<uint64_t, LingerOp*>  linger_ops;
 
+  ceph::unordered_map<object_t,vector<Op*> > unchosen_ops;
+  ceph::unordered_map<object_t,vector<Op*> > query_ops;
+  int pg_choice_num;
+
   map<ceph_tid_t,PoolStatOp*>    poolstat_ops;
   map<ceph_tid_t,StatfsOp*>      statfs_ops;
   map<ceph_tid_t,PoolOp*>        pool_ops;
@@ -1518,6 +1524,8 @@ public:
   map<epoch_t,list< pair<Context*, int> > > waiting_for_map;
 
   double mon_timeout, osd_timeout;
+
+  void choose_pg(Op* op);
 
   MOSDOp *_prepare_osd_op(Op *op);
   void _send_op(Op *op, MOSDOp *m = NULL);
@@ -1536,6 +1544,7 @@ public:
     RECALC_OP_TARGET_POOL_DNE,
     RECALC_OP_TARGET_OSD_DNE,
     RECALC_OP_TARGET_OSD_DOWN,
+    RECALC_OP_TARGET_NEED_CHOOSE_PG,
   };
   bool osdmap_full_flag() const;
 
@@ -1639,18 +1648,22 @@ public:
     timer(cct, timer_lock, false),
     logger(NULL), tick_event(NULL),
     m_request_state_hook(NULL),
+    pg_choice_num(cct->_conf->pg_choice_num),
     num_homeless_ops(0),
     homeless_session(new OSDSession(cct, -1)),
     mon_timeout(mon_timeout),
     osd_timeout(osd_timeout),
     op_throttle_bytes(cct, "objecter_bytes", cct->_conf->objecter_inflight_op_bytes),
     op_throttle_ops(cct, "objecter_ops", cct->_conf->objecter_inflight_ops)
-  { }
+    {
+	init_crush_location();
+    }	
   ~Objecter();
 
   void init();
   void start();
   void shutdown();
+  void init_crush_location();
 
   const OSDMap *get_osdmap_read() {
     rwlock.get_read();

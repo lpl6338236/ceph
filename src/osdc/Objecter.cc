@@ -164,7 +164,18 @@ void Objecter::handle_conf_change(const struct md_config_t *conf,
     }
   }
 }
-
+void Objecter::init_crush_location(){
+	  if (cct->_conf->crush_location != ""){
+		    crush_location.clear();
+		    vector<string> lvec;
+		    get_str_vec(cct->_conf->crush_location, ";, \t", lvec);
+		    int r = CrushWrapper::parse_loc_multimap(lvec, &crush_location);
+		    if (r < 0) {
+		      cout << "warning: crush_location '" << cct->_conf->crush_location
+				 << "' does not parse" << std::endl;
+		    }
+	  }
+}
 
 // messages ------------------------------
 
@@ -1722,6 +1733,58 @@ ceph_tid_t Objecter::_op_submit_with_budget(Op *op, RWLock::Context& lc, int *ct
   return tid;
 }
 
+void Objecter::choose_pg(Op* op){
+	for (int i = 0; i < pg_choice_num; i++){
+		RWLock::Context lc(rwlock, RWLock::Context::TakenForWrite);
+
+	    vector<OSDOp> ops;
+	    int i = init_ops(ops, 1, NULL);
+	    ops[i].op.op = CEPH_OSD_OP_READ;
+	    ops[i].op.extent.offset = 0;
+	    ops[i].op.extent.length = 1;
+	    ops[i].op.extent.truncate_size = 0;
+	    ops[i].op.extent.truncate_seq = 0;
+		Op* query = new Op(op->target.target_oid, op->target.target_oloc, ops,
+				global_op_flags.read() | CEPH_OSD_FLAG_READ|CEPH_OSD_OBJECT_QUERY, 0, 0, NULL);
+		op->outbl = NULL;
+		query->snapid = CEPH_NOSNAP;
+		query->target.target_oid = query->target.base_oid;
+		query->target.target_oloc = query->target.base_oloc;
+		query_ops[op->target.target_oid].push_back(query);
+		pg_t pgid = osdmap->raw_pg_to_pg(pg_t((op->target.pgid.m_seed + i), op->target.pgid.m_pool));
+		query->target.pgid = pgid;
+		int up_primary, acting_primary;
+		vector<int> up, acting;
+		osdmap->pg_to_up_acting_osds(query->target.pgid, &up, &up_primary,
+					       &acting, &acting_primary);
+		query->target.osd = acting_primary;
+
+		OSDSession *s = NULL;
+		// Try to get a session, including a retry if we need to take write lock
+		int r = _get_session(query->target.osd, &s, lc);
+		if (r == -EAGAIN) {
+			assert(s == NULL);
+			lc.promote();
+			r = _get_session(query->target.osd, &s, lc);
+		}
+		assert(r == 0);
+		assert(s);  // may be homeless
+
+		MOSDOp *m = NULL;
+		m = _prepare_osd_op(query);
+		s->lock.get_write();
+		if (query->tid == 0)
+		    query->tid = last_tid.inc();
+		_session_op_assign(s, query);
+		_send_op(query, m);
+		// Last chance to touch query here, after giving up session lock it can be
+		// freed at any time by response handler.
+		query = NULL;
+		s->lock.unlock();
+		put_session(s);
+	}
+}
+
 ceph_tid_t Objecter::_op_submit(Op *op, RWLock::Context& lc)
 {
   assert(rwlock.is_locked());
@@ -1732,7 +1795,17 @@ ceph_tid_t Objecter::_op_submit(Op *op, RWLock::Context& lc)
   assert(op->session == NULL);
   OSDSession *s = NULL;
 
-  bool const check_for_latest_map = _calc_target(&op->target) == RECALC_OP_TARGET_POOL_DNE;
+
+  int r_calc_target = _calc_target(&op->target);
+  bool const check_for_latest_map = r_calc_target == RECALC_OP_TARGET_POOL_DNE;
+  if (pg_choice_num >= 1 && r_calc_target == RECALC_OP_TARGET_NEED_CHOOSE_PG){
+	  unchosen_ops[op->target.target_oid].push_back(op);
+	  unfound_pg[op->target.target_oid] = 0;
+	  choose_pg(op);
+	  return op->tid;
+  }
+
+
 
   // Try to get a session, including a retry if we need to take write lock
   int r = _get_session(op->target.osd, &s, lc);
@@ -2054,6 +2127,17 @@ int Objecter::_calc_target(op_target_t *t, bool any_change)
       return RECALC_OP_TARGET_POOL_DNE;
     }
   }
+
+  if (pg_choice_num >= 1){
+	  if (pg_choice.find(t->target_oid) != pg_choice.end()){
+		  pgid = pg_choice[t->target_oid];
+	  }
+	  else {
+		  t->pgid = pgid;
+		  return RECALC_OP_TARGET_NEED_CHOOSE_PG;
+	  }
+  }
+
 
   int min_size = pi->min_size;
   unsigned pg_num = pi->get_pg_num();
@@ -2506,6 +2590,67 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 {
   assert(initialized.read());
   ldout(cct, 10) << "in handle_osd_op_reply" << dendl;
+
+  if (pg_choice_num >= 1 && m->get_result() == -ENOENT && (m->get_flags() & CEPH_OSD_OBJECT_QUERY)){
+	  RWLock::WLocker rl(rwlock);
+	  RWLock::Context lc(rwlock, RWLock::Context::TakenForRead);
+	  unfound_pg[m->get_oid()] += 1;
+	  if (unfound_pg[m->get_oid()] == pg_choice_num){
+		  ceph::unordered_map<object_t, vector<Op*> >:: iterator it = unchosen_ops.find(m->get_oid());
+		  if (it == unchosen_ops.end()){
+
+		  }
+		  else{
+			  //pg_choice[m->get_oid()] = osdmap->get_local_pg(ops[0]->target.pgid,ops[0]->target.hint, ops[0]->target.target_oloc);
+			  vector<int> osds;
+			  vector<pg_t> pgs;
+			  for (int i = 0; i < pg_choice_num; i++){
+				  int up_primary, acting_primary;
+				  vector<int> up, acting;
+				  pg_t pgid = osdmap->raw_pg_to_pg(pg_t((it->second[0]->target.pgid.m_seed + i), it->second[0]->target.pgid.m_pool));
+				  osdmap->pg_to_up_acting_osds(pgid, &up, &up_primary,
+										   &acting, &acting_primary);
+				  osds.push_back(acting_primary);
+				  pgs.push_back(pgid);
+			  }
+				int best = -1;
+				int best_locality = 0;
+				for (unsigned i = 0; i < osds.size(); ++i) {
+					int locality = osdmap->crush->get_common_ancestor_distance(
+					 cct, osds[i], crush_location);
+					if (i == 0 ||
+					  (locality >= 0 && best_locality >= 0 &&
+					   locality < best_locality) ||
+					  (best_locality < 0 && locality >= 0)) {
+						best = i;
+						best_locality = locality;
+					}
+				}
+				pg_choice[m->get_oid()] = pgs[best];
+			  for (int i = 0; i < int(it->second.size()); i++){
+				  _op_submit(it->second[i], lc);
+			  }
+			  unchosen_ops.erase(m->get_oid());
+		  }
+	  }
+
+  }
+  else if (pg_choice_num >= 1 && m->get_result() != ENOENT && (m->get_flags() & CEPH_OSD_OBJECT_QUERY)){
+	  RWLock::WLocker rl(rwlock);
+	  RWLock::Context lc(rwlock, RWLock::Context::TakenForRead);
+	  pg_choice[m->get_oid()] = m->get_pg();
+	  ceph::unordered_map<object_t, vector<Op*> >:: iterator it = unchosen_ops.find(m->get_oid());
+	  if (it == unchosen_ops.end()){
+
+	  }
+	  else{
+		  for (int i = 0; i < int(it->second.size()); i++){
+			  _op_submit(it->second[i], lc);
+		  }
+
+		  unchosen_ops.erase(m->get_oid());
+	  }
+  }
 
   // get pio
   ceph_tid_t tid = m->get_tid();
