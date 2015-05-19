@@ -1738,12 +1738,12 @@ void Objecter::choose_pg(Op* op){
 		RWLock::Context lc(rwlock, RWLock::Context::TakenForWrite);
 
 	    vector<OSDOp> ops;
-	    int i = init_ops(ops, 1, NULL);
-	    ops[i].op.op = CEPH_OSD_OP_READ;
-	    ops[i].op.extent.offset = 0;
-	    ops[i].op.extent.length = 1;
-	    ops[i].op.extent.truncate_size = 0;
-	    ops[i].op.extent.truncate_seq = 0;
+	    int in = init_ops(ops, 1, NULL);
+	    ops[in].op.op = CEPH_OSD_OP_READ;
+	    ops[in].op.extent.offset = 4*1024*1024+1;
+	    ops[in].op.extent.length = 0;
+	    ops[in].op.extent.truncate_size = 0;
+	    ops[in].op.extent.truncate_seq = 0;
 		Op* query = new Op(op->target.target_oid, op->target.target_oloc, ops,
 				global_op_flags.read() | CEPH_OSD_FLAG_READ|CEPH_OSD_OBJECT_QUERY, 0, 0, NULL);
 		op->outbl = NULL;
@@ -1751,13 +1751,16 @@ void Objecter::choose_pg(Op* op){
 		query->target.target_oid = query->target.base_oid;
 		query->target.target_oloc = query->target.base_oloc;
 		query_ops[op->target.target_oid].push_back(query);
-		pg_t pgid = osdmap->raw_pg_to_pg(pg_t((op->target.pgid.m_seed + i), op->target.pgid.m_pool));
+		pg_t pg_tmp = osdmap->raw_pg_to_pg(op->target.pgid);
+  		ldout(cct, 10) << " primary pg " << pg_tmp.m_seed <<"original pg "<<op->target.pgid.m_seed<< dendl;
+		pg_t pgid = osdmap->raw_pg_to_pg(pg_t((pg_tmp.m_seed + i), pg_tmp.m_pool));
 		query->target.pgid = pgid;
 		int up_primary, acting_primary;
 		vector<int> up, acting;
 		osdmap->pg_to_up_acting_osds(query->target.pgid, &up, &up_primary,
 					       &acting, &acting_primary);
 		query->target.osd = acting_primary;
+  		ldout(cct, 10) << " target pg " << query->target.pgid.m_seed <<"target osd "<<query->target.osd<< dendl;
 
 		OSDSession *s = NULL;
 		// Try to get a session, including a retry if we need to take write lock
