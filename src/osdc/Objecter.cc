@@ -1751,9 +1751,9 @@ void Objecter::choose_pg(Op* op){
 		query->target.target_oid = query->target.base_oid;
 		query->target.target_oloc = query->target.base_oloc;
 		query_ops[op->target.target_oid].push_back(query);
-		pg_t pg_tmp = osdmap->raw_pg_to_pg(op->target.pgid);
-  		ldout(cct, 10) << " primary pg " << pg_tmp.m_seed <<"original pg "<<op->target.pgid.m_seed<< dendl;
-		pg_t pgid = osdmap->raw_pg_to_pg(pg_t((pg_tmp.m_seed + i), pg_tmp.m_pool));
+		pg_t pgid;
+		if (i != 0) pgid = osdmap->raw_pg_to_pg(pg_t((op->target.pgid.m_seed + i), op->target.pgid.m_pool));
+		else pgid = op->target.pgid;
 		query->target.pgid = pgid;
 		int up_primary, acting_primary;
 		vector<int> up, acting;
