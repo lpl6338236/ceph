@@ -2611,7 +2611,8 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 				  osdmap->pg_to_up_acting_osds(pgid, &up, &up_primary,
 										   &acting, &acting_primary);
 				  osds.push_back(acting_primary);
-				  pgs.push_back(pgid);
+				  if (i == 0) pgs.push_back(it->second[0]->target.pgid);
+				  else pgs.push_back(pgid);
 			  }
 				int best = -1;
 				int best_locality = 0;
