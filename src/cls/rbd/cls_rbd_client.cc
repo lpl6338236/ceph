@@ -36,12 +36,9 @@ namespace librbd {
 	uint64_t size;
 	// get_size
 	::decode(*order, iter);
-	cout << *order << endl;
 	::decode(size, iter);
-	cout << size << endl;
 	// get_object_prefix
 	::decode(*object_prefix, iter);
-	cout << *object_prefix << endl;
       } catch (const buffer::error &err) {
 	return -EBADMSG;
       }
