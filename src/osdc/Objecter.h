@@ -1006,6 +1006,11 @@ public:
 public:
   ceph::unordered_map<object_t, pg_t> pg_choice;
   ceph::unordered_map<object_t, int> unfound_pg;
+  ceph::unordered_map<int, double> osd_latency;
+  ceph::unordered_map<int, double> osd_full_ratio;
+  std::vector<int> chosen_osds; 
+  int chosen_osds_ptr;
+
   Messenger *messenger;
   MonClient *monc;
 private:
@@ -1506,6 +1511,7 @@ public:
 
   ceph::unordered_map<object_t,vector<Op*> > unchosen_ops;
   ceph::unordered_map<object_t,vector<Op*> > query_ops;
+  std::string pg_choice_type;
   int pg_choice_num;
 
   map<ceph_tid_t,PoolStatOp*>    poolstat_ops;
@@ -1648,6 +1654,7 @@ public:
     timer(cct, timer_lock, false),
     logger(NULL), tick_event(NULL),
     m_request_state_hook(NULL),
+    pg_choice_type(cct->_conf->pg_choice_type),
     pg_choice_num(cct->_conf->pg_choice_num),
     num_homeless_ops(0),
     homeless_session(new OSDSession(cct, -1)),
@@ -1657,6 +1664,10 @@ public:
     op_throttle_ops(cct, "objecter_ops", cct->_conf->objecter_inflight_ops)
     {
 	init_crush_location();
+	if (cct->_conf->pg_choice_window_size != 0 ) {
+            chosen_osds.resize(cct->_conf->pg_choice_window_size, -1);
+            chosen_osds_ptr = 0;
+          }
     }	
   ~Objecter();
 

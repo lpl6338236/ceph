@@ -1739,20 +1739,28 @@ void Objecter::choose_pg(Op* op){
 
 	    vector<OSDOp> ops;
 	    int in = init_ops(ops, 1, NULL);
-	    ops[in].op.op = CEPH_OSD_OP_READ;
+			ops[in].op.op = CEPH_OSD_OP_READ;
 	    ops[in].op.extent.offset = 4*1024*1024+1;
 	    ops[in].op.extent.length = 0;
 	    ops[in].op.extent.truncate_size = 0;
 	    ops[in].op.extent.truncate_seq = 0;
-		Op* query = new Op(op->target.target_oid, op->target.target_oloc, ops,
-				global_op_flags.read() | CEPH_OSD_FLAG_READ|CEPH_OSD_OBJECT_QUERY, 0, 0, NULL);
+        Op* query;
+		if (pg_choice_type == "local" || pg_choice_type == "even")
+			query = new Op(op->target.target_oid, op->target.target_oloc, ops,
+                global_op_flags.read() | CEPH_OSD_FLAG_READ|CEPH_OSD_OBJECT_QUERY, 0, 0, NULL);
+		else if (pg_choice_type == "latency")
+			query = new Op(op->target.target_oid, op->target.target_oloc, ops,
+                global_op_flags.read() | CEPH_OSD_FLAG_READ|CEPH_OSD_OBJECT_QUERY|CEPH_OSD_OBJECT_QUERY_LATENCY, 0, 0, NULL);
+		else if (pg_choice_type == "space")
+			query = new Op(op->target.target_oid, op->target.target_oloc, ops,
+                global_op_flags.read() | CEPH_OSD_FLAG_READ|CEPH_OSD_OBJECT_QUERY|CEPH_OSD_OBJECT_QUERY_FULL_RATIO, 0, 0, NULL);
 		query->outbl = NULL;
 		query->snapid = CEPH_NOSNAP;
 		query->target.target_oid = query->target.base_oid;
 		query->target.target_oloc = query->target.base_oloc;
 		query_ops[op->target.target_oid].push_back(query);
 		pg_t pgid;
-		if (i != 0) pgid = osdmap->raw_pg_to_pg(pg_t((op->target.pgid.m_seed + i), op->target.pgid.m_pool));
+		if (i != 0) pgid = osdmap->raw_pg_to_pg(pg_t((op->target.pgid.m_seed + i + op->target.target_oid.name.at(op->target.target_oid.name.length() - 1)), op->target.pgid.m_pool));
 		else pgid = op->target.pgid;
 		query->target.pgid = pgid;
 		int up_primary, acting_primary;
@@ -2610,14 +2618,15 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 			  for (int i = 0; i < pg_choice_num; i++){
 				  int up_primary, acting_primary;
 				  vector<int> up, acting;
-				  pg_t pgid = osdmap->raw_pg_to_pg(pg_t((it->second[0]->target.pgid.m_seed + i), it->second[0]->target.pgid.m_pool));
+				  pg_t pgid = osdmap->raw_pg_to_pg(pg_t((it->second[0]->target.pgid.m_seed + i + m->get_oid().name.at(m->get_oid().name.length() - 1)), it->second[0]->target.pgid.m_pool));
 				  osdmap->pg_to_up_acting_osds(pgid, &up, &up_primary,
 										   &acting, &acting_primary);
 				  osds.push_back(acting_primary);
 				  if (i == 0) pgs.push_back(it->second[0]->target.pgid);
 				  else pgs.push_back(pgid);
 			  }
-				int best = -1;
+			  int best = -1;
+			  if (pg_choice_type == "local"){
 				int best_locality = 0;
 				for (unsigned i = 0; i < osds.size(); ++i) {
 					int locality = osdmap->crush->get_common_ancestor_distance(
@@ -2630,7 +2639,47 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 						best_locality = locality;
 					}
 				}
-				pg_choice[m->get_oid()] = pgs[best];
+			  }
+                          else if (pg_choice_type == "even"){
+                            best = 0;
+			    int default_osd = osds[0];
+                            for (vector<int>:: iterator it = chosen_osds.begin(); it != chosen_osds.end(); it++){
+                              if (*it == -1){
+                                break;
+                              }
+                              for (int i = best; i < pg_choice_num; i++){
+                                if (*it == osds[i]){
+                                  osds[i] = -1; 
+                                }
+                              }
+                              while (osds[best] == -1 && best < pg_choice_num){                        
+                                best ++;
+                              }
+                              if (best >= pg_choice_num){
+                                best = 0;
+                                break;
+                              }
+                            }
+                            if (osds[best] != -1) {
+			      chosen_osds[chosen_osds_ptr] = osds[best];
+			    }
+			    else{
+			      chosen_osds[chosen_osds_ptr] = default_osd;
+			    }
+			    //cout << best << " " << osds[best] << " " << chosen_osds[chosen_osds_ptr] << "\n";
+                            chosen_osds_ptr = (chosen_osds_ptr + 1) % chosen_osds.size();             
+                          }
+			  else if (pg_choice_type == "space"){
+			    best = 0;
+			    int min = 100;
+			    for (int i = 0; i < pg_choice_num; i++){
+			      if (osd_full_ratio[osds[i]] < min){
+				best = i;
+				min = osd_full_ratio[osds[i]];
+			      }
+			    }
+			  }
+                          pg_choice[m->get_oid()] = pgs[best];
 			  for (int i = 0; i < int(it->second.size()); i++){
 				  _op_submit(it->second[i], lc);
 			  }
@@ -2766,6 +2815,18 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
   // per-op result demuxing
   vector<OSDOp> out_ops;
   m->claim_ops(out_ops);
+  if (m->get_flags() & CEPH_OSD_OBJECT_QUERY_FULL_RATIO){
+	  int ratio = 0;
+	  bufferlist::iterator it = out_ops[0].outdata.begin();
+	  if (!it.end()){
+		  ::decode(ratio, it);
+		  osd_full_ratio[m->get_source().num()] = ratio;
+		  //cout << " full_ratio from osd "<<m->get_source().num()<<" "<<ratio<< std:: endl;
+	  }
+	  else{
+	    //cout << m->get_oid() << " exits at "<< m->get_source().num()<<std::endl;
+	  }
+  }
   
   if (out_ops.size() != op->ops.size())
     ldout(cct, 0) << "WARNING: tid " << op->tid << " reply ops " << out_ops

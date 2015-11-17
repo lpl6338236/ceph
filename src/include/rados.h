@@ -398,6 +398,8 @@ enum {
 	CEPH_OSD_FLAG_REDIRECTED   = 0x200000,  /* op has been redirected */
 	CEPH_OSD_FLAG_KNOWN_REDIR = 0x400000,  /* redirect bit is authoritative */
 	CEPH_OSD_OBJECT_QUERY = 0x1000000,
+	CEPH_OSD_OBJECT_QUERY_FULL_RATIO = 0x2000000,
+	CEPH_OSD_OBJECT_QUERY_LATENCY = 0x4000000,
 };
 
 enum {

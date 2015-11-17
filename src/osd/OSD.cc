@@ -1211,6 +1211,11 @@ void OSDService::reply_op_error(OpRequestRef op, int err, eversion_t v,
 
   MOSDOpReply *reply = new MOSDOpReply(m, err, osdmap->get_epoch(), flags,
 				       true);
+  if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_FULL_RATIO |CEPH_OSD_OBJECT_QUERY_LATENCY )){
+	  int lat = (int)(((float)osd_stat.kb_used) / (float)osd_stat.kb * 100) + 11;
+	  ::encode(lat, m->ops[0].outdata);
+	  reply->claim_op_out_data(m->ops);
+  }
   reply->set_reply_versions(v, uv);
   m->get_connection()->send_message(reply);
 }
