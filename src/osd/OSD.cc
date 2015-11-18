@@ -247,6 +247,8 @@ OSDService::OSDService(OSD *osd) :
 #endif
 {
   objecter->init();
+  read_lat_window.resize(cct->_conf->latency_window_size, 0);
+  read_lat_ptr = 0;
 }
 
 OSDService::~OSDService()
@@ -1211,8 +1213,17 @@ void OSDService::reply_op_error(OpRequestRef op, int err, eversion_t v,
 
   MOSDOpReply *reply = new MOSDOpReply(m, err, osdmap->get_epoch(), flags,
 				       true);
-  if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_FULL_RATIO |CEPH_OSD_OBJECT_QUERY_LATENCY )){
-	  int lat = (int)(((float)osd_stat.kb_used) / (float)osd_stat.kb * 100) + 11;
+  if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_FULL_RATIO)){
+	  int ratio = (int)(((float)osd_stat.kb_used) / (float)osd_stat.kb * 100);
+	  ::encode(ratio, m->ops[0].outdata);
+	  reply->claim_op_out_data(m->ops);
+  }
+  else if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_LATENCY)){
+	  double lat = 0;
+	  for (vector<double>::iterator it = read_lat_window.begin(); it != read_lat_window.end();it++){
+		  lat += *it;
+	  }
+	  lat = lat / read_lat_window.size();
 	  ::encode(lat, m->ops[0].outdata);
 	  reply->claim_op_out_data(m->ops);
   }

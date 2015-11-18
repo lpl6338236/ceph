@@ -2679,6 +2679,16 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 			      }
 			    }
 			  }
+			  else if (pg_choice_type == "latency"){
+			    best = 0;
+			    int min = 1<<30;
+			    for (int i = 0; i < pg_choice_num; i++){
+			      if (osd_latency[osds[i]] < min){
+				best = i;
+				min = osd_latency[osds[i]];
+			      }
+			    }
+			  }
                           pg_choice[m->get_oid()] = pgs[best];
 			  for (int i = 0; i < int(it->second.size()); i++){
 				  _op_submit(it->second[i], lc);
@@ -2827,6 +2837,19 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 	    //cout << m->get_oid() << " exits at "<< m->get_source().num()<<std::endl;
 	  }
   }
+  else if (m->get_flags() & CEPH_OSD_OBJECT_QUERY_LATENCY){
+	  double lat = 0;
+	  bufferlist::iterator it = out_ops[0].outdata.begin();
+	  if (!it.end()){
+		  ::decode(lat, it);
+		  osd_latency[m->get_source().num()] = lat;
+		  cout << " latency osd "<<m->get_source().num()<<" "<<lat<< std:: endl;
+	  }
+	  else{
+	    cout << m->get_oid() << " exits at "<< m->get_source().num()<<std::endl;
+	  }
+  }
+
   
   if (out_ops.size() != op->ops.size())
     ldout(cct, 0) << "WARNING: tid " << op->tid << " reply ops " << out_ops

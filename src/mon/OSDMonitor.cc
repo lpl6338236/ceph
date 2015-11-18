@@ -2637,6 +2637,8 @@ bool OSDMonitor::preprocess_command(MMonCommand *m)
         f->dump_int("crush_ruleset", p->get_crush_ruleset());
       } else if (var == "hit_set_period") {
 	f->dump_int("hit_set_period", p->hit_set_period);
+      } else if (var == "pg_choice_lat_window_size") {
+	f->dump_int("pg_choice_lat_window_size", p->pg_choice_lat_window_size);
       } else if (var == "hit_set_count") {
 	f->dump_int("hit_set_count", p->hit_set_count);
       } else if (var == "hit_set_type") {
@@ -2694,6 +2696,8 @@ bool OSDMonitor::preprocess_command(MMonCommand *m)
         ss << "crush_ruleset: " << p->get_crush_ruleset();
       } else if (var == "hit_set_period") {
 	ss << "hit_set_period: " << p->hit_set_period;
+      } else if (var == "pg_choice_lat_window_size") {
+	ss << "pg_choice_lat_window_size: " << p->pg_choice_lat_window_size;
       } else if (var == "hit_set_count") {
 	ss << "hit_set_count: " << p->hit_set_count;
       } else if (var == "hit_set_type") {
@@ -3824,6 +3828,12 @@ int OSDMonitor::prepare_command_pool_set(map<string,cmd_vartype> &cmdmap,
       return -EINVAL;
     }
     p.hit_set_period = n;
+  } else if (var == "pg_choice_lat_window_size") {
+    if (interr.length()) {
+      ss << "error parsing integer value '" << val << "': " << interr;
+      return -EINVAL;
+    }
+    p.pg_choice_lat_window_size = n;
   } else if (var == "hit_set_count") {
 
     if (interr.length()) {

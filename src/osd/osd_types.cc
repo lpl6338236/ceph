@@ -808,6 +808,7 @@ void pg_pool_t::dump(Formatter *f) const
   hit_set_params.dump(f);
   f->close_section(); // hit_set_params
   f->dump_unsigned("hit_set_period", hit_set_period);
+  f->dump_unsigned("pg_choice_lat_window_size", pg_choice_lat_window_size);
   f->dump_unsigned("hit_set_count", hit_set_count);
   f->dump_unsigned("min_read_recency_for_promote", min_read_recency_for_promote);
   f->dump_unsigned("stripe_width", get_stripe_width());
@@ -1098,6 +1099,7 @@ void pg_pool_t::encode(bufferlist& bl, uint64_t features) const
     ::encode(properties, bl);
     ::encode(hit_set_params, bl);
     ::encode(hit_set_period, bl);
+    ::encode(pg_choice_lat_window_size, bl);
     ::encode(hit_set_count, bl);
     ::encode(stripe_width, bl);
     ::encode(target_max_bytes, bl);
@@ -1141,6 +1143,7 @@ void pg_pool_t::encode(bufferlist& bl, uint64_t features) const
   ::encode(properties, bl);
   ::encode(hit_set_params, bl);
   ::encode(hit_set_period, bl);
+  ::encode(pg_choice_lat_window_size, bl);
   ::encode(hit_set_count, bl);
   ::encode(stripe_width, bl);
   ::encode(target_max_bytes, bl);
@@ -1226,10 +1229,12 @@ void pg_pool_t::decode(bufferlist::iterator& bl)
   if (struct_v >= 11) {
     ::decode(hit_set_params, bl);
     ::decode(hit_set_period, bl);
+    ::decode(pg_choice_lat_window_size, bl);
     ::decode(hit_set_count, bl);
   } else {
     pg_pool_t def;
     hit_set_period = def.hit_set_period;
+    pg_choice_lat_window_size= def.pg_choice_lat_window_size;
     hit_set_count = def.hit_set_count;
   }
   if (struct_v >= 12) {

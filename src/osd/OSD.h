@@ -321,6 +321,8 @@ private:
   Messenger *&client_messenger;
 public:
   PerfCounters *&logger;
+  vector<double> read_lat_window;
+  int read_lat_ptr;
   PerfCounters *&recoverystate_perf;
   MonClient   *&monc;
   ShardedThreadPool::ShardedWQ < pair <PGRef, OpRequestRef> > &op_wq;

@@ -1007,7 +1007,7 @@ public:
   ceph::unordered_map<object_t, pg_t> pg_choice;
   ceph::unordered_map<object_t, int> unfound_pg;
   ceph::unordered_map<int, double> osd_latency;
-  ceph::unordered_map<int, double> osd_full_ratio;
+  ceph::unordered_map<int, int> osd_full_ratio;
   std::vector<int> chosen_osds; 
   int chosen_osds_ptr;
 
