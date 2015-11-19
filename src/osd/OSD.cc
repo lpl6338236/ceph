@@ -1216,16 +1216,17 @@ void OSDService::reply_op_error(OpRequestRef op, int err, eversion_t v,
   if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_FULL_RATIO)){
 	  int ratio = (int)(((float)osd_stat.kb_used) / (float)osd_stat.kb * 100);
 	  ::encode(ratio, m->ops[0].outdata);
-	  reply->claim_op_out_data(m->ops);
   }
-  else if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_LATENCY)){
+  if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_LATENCY)){
 	  double lat = 0;
 	  for (vector<double>::iterator it = read_lat_window.begin(); it != read_lat_window.end();it++){
 		  lat += *it;
 	  }
 	  lat = lat / read_lat_window.size();
 	  ::encode(lat, m->ops[0].outdata);
-	  reply->claim_op_out_data(m->ops);
+  }
+  if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_FULL_RATIO | CEPH_OSD_OBJECT_QUERY_LATENCY)){ 
+    reply->claim_op_out_data(m->ops);
   }
   reply->set_reply_versions(v, uv);
   m->get_connection()->send_message(reply);

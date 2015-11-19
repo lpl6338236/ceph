@@ -1513,6 +1513,7 @@ public:
   ceph::unordered_map<object_t,vector<Op*> > query_ops;
   std::string pg_choice_type;
   int pg_choice_num;
+  double pg_choice_latency_threshold;
 
   map<ceph_tid_t,PoolStatOp*>    poolstat_ops;
   map<ceph_tid_t,StatfsOp*>      statfs_ops;
@@ -1656,6 +1657,7 @@ public:
     m_request_state_hook(NULL),
     pg_choice_type(cct->_conf->pg_choice_type),
     pg_choice_num(cct->_conf->pg_choice_num),
+    pg_choice_latency_threshold(cct->_conf->pg_choice_latency_threshold),
     num_homeless_ops(0),
     homeless_session(new OSDSession(cct, -1)),
     mon_timeout(mon_timeout),

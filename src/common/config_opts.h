@@ -292,6 +292,7 @@ OPTION(fuse_multithreaded, OPT_BOOL, false)
 
 OPTION(crush_location, OPT_STR, "")       // whitespace-separated list of key=value pairs describing crush location
 OPTION(pg_choice_num, OPT_INT, 0)
+OPTION(pg_choice_latency_threshold, OPT_DOUBLE, 0)
 OPTION(pg_choice_type, OPT_STR, "") 
 OPTION(pg_choice_window_size, OPT_INT, 0)
 OPTION(latency_window_size, OPT_INT, 0)

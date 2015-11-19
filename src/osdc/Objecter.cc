@@ -1754,6 +1754,9 @@ void Objecter::choose_pg(Op* op){
 		else if (pg_choice_type == "space")
 			query = new Op(op->target.target_oid, op->target.target_oloc, ops,
                 global_op_flags.read() | CEPH_OSD_FLAG_READ|CEPH_OSD_OBJECT_QUERY|CEPH_OSD_OBJECT_QUERY_FULL_RATIO, 0, 0, NULL);
+		else if (pg_choice_type == "mix_lat_space")
+			query = new Op(op->target.target_oid, op->target.target_oloc, ops,
+                global_op_flags.read() | CEPH_OSD_FLAG_READ|CEPH_OSD_OBJECT_QUERY|CEPH_OSD_OBJECT_QUERY_FULL_RATIO|CEPH_OSD_OBJECT_QUERY_LATENCY, 0, 0, NULL);
 		query->outbl = NULL;
 		query->snapid = CEPH_NOSNAP;
 		query->target.target_oid = query->target.base_oid;
@@ -2689,6 +2692,17 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 			      }
 			    }
 			  }
+			  else if (pg_choice_type == "mix_lat_space"){
+			    best = 0;
+			    int min = 100;
+			    for (int i = 0; i < pg_choice_num; i++){
+			      if (osd_full_ratio[osds[i]] < min && osd_latency[osds[i]] <= pg_choice_latency_threshold){
+				best = i;
+				min = osd_full_ratio[osds[i]];
+			      }
+			    }
+			    cout << "best "<<best<<" full ratio " << osd_full_ratio[osds[best]] << " latency " << osd_latency[osds[best]]<<std::endl;
+			  }
                           pg_choice[m->get_oid()] = pgs[best];
 			  for (int i = 0; i < int(it->second.size()); i++){
 				  _op_submit(it->second[i], lc);
@@ -2825,31 +2839,21 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
   // per-op result demuxing
   vector<OSDOp> out_ops;
   m->claim_ops(out_ops);
-  if (m->get_flags() & CEPH_OSD_OBJECT_QUERY_FULL_RATIO){
-	  int ratio = 0;
-	  bufferlist::iterator it = out_ops[0].outdata.begin();
-	  if (!it.end()){
+  if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_LATENCY | CEPH_OSD_OBJECT_QUERY_FULL_RATIO)){
+      bufferlist::iterator it = out_ops[0].outdata.begin();
+	  if (!it.end() && (m->get_flags() & CEPH_OSD_OBJECT_QUERY_FULL_RATIO)){
+		  int ratio = 0;
 		  ::decode(ratio, it);
 		  osd_full_ratio[m->get_source().num()] = ratio;
-		  //cout << " full_ratio from osd "<<m->get_source().num()<<" "<<ratio<< std:: endl;
+		  cout << " full_ratio from osd "<<m->get_source().num()<<" "<<ratio<< std:: endl;
 	  }
-	  else{
-	    //cout << m->get_oid() << " exits at "<< m->get_source().num()<<std::endl;
-	  }
-  }
-  else if (m->get_flags() & CEPH_OSD_OBJECT_QUERY_LATENCY){
-	  double lat = 0;
-	  bufferlist::iterator it = out_ops[0].outdata.begin();
-	  if (!it.end()){
+	  if (!it.end() && (m->get_flags() & CEPH_OSD_OBJECT_QUERY_LATENCY)){
+		  double lat = 0;
 		  ::decode(lat, it);
 		  osd_latency[m->get_source().num()] = lat;
 		  cout << " latency osd "<<m->get_source().num()<<" "<<lat<< std:: endl;
 	  }
-	  else{
-	    cout << m->get_oid() << " exits at "<< m->get_source().num()<<std::endl;
-	  }
   }
-
   
   if (out_ops.size() != op->ops.size())
     ldout(cct, 0) << "WARNING: tid " << op->tid << " reply ops " << out_ops
