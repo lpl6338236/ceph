@@ -133,6 +133,7 @@
 #include "include/assert.h"
 #include "common/config.h"
 
+
 #ifdef WITH_LTTNG
 #include "tracing/osd.h"
 #endif
@@ -1225,7 +1226,11 @@ void OSDService::reply_op_error(OpRequestRef op, int err, eversion_t v,
 	  lat = lat / read_lat_window.size();
 	  ::encode(lat, m->ops[0].outdata);
   }
-  if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_FULL_RATIO | CEPH_OSD_OBJECT_QUERY_LATENCY)){ 
+  if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_JOURNAL_THROTTLE)){
+	  int64_t bytes = store->get_throttle_current();
+	  ::encode(bytes, m->ops[0].outdata);
+  }
+  if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_FULL_RATIO | CEPH_OSD_OBJECT_QUERY_LATENCY | CEPH_OSD_OBJECT_QUERY_JOURNAL_THROTTLE)){
     reply->claim_op_out_data(m->ops);
   }
   reply->set_reply_versions(v, uv);

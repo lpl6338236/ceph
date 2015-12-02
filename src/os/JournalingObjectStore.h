@@ -120,6 +120,7 @@ protected:
   virtual int do_transactions(list<ObjectStore::Transaction*>& tls, uint64_t op_seq) = 0;
 
 public:
+  int64_t get_throttle_current(){return journal->get_throttle_current();}
   bool is_committing() {
     return apply_manager.is_committing();
   }

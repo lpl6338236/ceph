@@ -25,6 +25,7 @@
 
 class MemStore : public ObjectStore {
 public:
+	int64_t get_throttle_current(){return 0;}
   struct Object {
     bufferlist data;
     map<string,bufferptr> xattr;

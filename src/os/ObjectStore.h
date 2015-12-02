@@ -90,6 +90,7 @@ protected:
   string path;
 
 public:
+  virtual int64_t get_throttle_current() = 0;
   /**
    * create - create an ObjectStore instance.
    *

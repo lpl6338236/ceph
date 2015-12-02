@@ -161,6 +161,7 @@ inline ostream& operator<<(ostream& out, const KVSuperblock& sb)
 class KeyValueStore : public ObjectStore,
                       public md_config_obs_t {
  public:
+  int64_t get_throttle_current(){return 0;}
   struct KVPerfTracker {
     PerfCounters::avg_tracker<uint64_t> os_commit_latency;
     PerfCounters::avg_tracker<uint64_t> os_apply_latency;

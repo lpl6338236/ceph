@@ -40,6 +40,7 @@ public:
     fsid(f), finisher(fin), logger(NULL),
     do_sync_cond(c),
     wait_on_full(false) { }
+  virtual int64_t get_throttle_current() = 0;
   virtual ~Journal() { }
 
   virtual int check() = 0;   ///< check if journal appears valid

@@ -37,6 +37,9 @@ using std::deque;
 class FileJournal : public Journal {
 public:
   /// Protected by finisher_lock
+	int64_t get_throttle_current(){
+		return throttle_bytes.get_current();
+	}
   struct completion_item {
     uint64_t seq;
     Context *finish;

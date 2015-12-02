@@ -1757,6 +1757,9 @@ void Objecter::choose_pg(Op* op){
 		else if (pg_choice_type == "mix_lat_space")
 			query = new Op(op->target.target_oid, op->target.target_oloc, ops,
                 global_op_flags.read() | CEPH_OSD_FLAG_READ|CEPH_OSD_OBJECT_QUERY|CEPH_OSD_OBJECT_QUERY_FULL_RATIO|CEPH_OSD_OBJECT_QUERY_LATENCY, 0, 0, NULL);
+		else if (pg_choice_type == "journal")
+			query = new Op(op->target.target_oid, op->target.target_oloc, ops,
+                global_op_flags.read() | CEPH_OSD_FLAG_READ|CEPH_OSD_OBJECT_QUERY|CEPH_OSD_OBJECT_QUERY_JOURNAL_THROTTLE, 0, 0, NULL);
 		query->outbl = NULL;
 		query->snapid = CEPH_NOSNAP;
 		query->target.target_oid = query->target.base_oid;
@@ -2703,6 +2706,16 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 			    }
 			    cout << "best "<<best<<" full ratio " << osd_full_ratio[osds[best]] << " latency " << osd_latency[osds[best]]<<std::endl;
 			  }
+			  else if (pg_choice_type == "journal"){
+			    best = 0;
+			    int64_t min = (1l<<30) * (1l<<30);
+			    for (int i = 0; i < pg_choice_num; i++){
+			      if (osd_journal_throttle[osds[i]] < min){
+				best = i;
+				min = osd_journal_throttle[osds[i]];
+			      }
+			    }
+			  }
                           pg_choice[m->get_oid()] = pgs[best];
 			  for (int i = 0; i < int(it->second.size()); i++){
 				  _op_submit(it->second[i], lc);
@@ -2839,7 +2852,7 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
   // per-op result demuxing
   vector<OSDOp> out_ops;
   m->claim_ops(out_ops);
-  if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_LATENCY | CEPH_OSD_OBJECT_QUERY_FULL_RATIO)){
+  if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_LATENCY | CEPH_OSD_OBJECT_QUERY_FULL_RATIO | CEPH_OSD_OBJECT_QUERY_JOURNAL_THROTTLE)){
       bufferlist::iterator it = out_ops[0].outdata.begin();
 	  if (!it.end() && (m->get_flags() & CEPH_OSD_OBJECT_QUERY_FULL_RATIO)){
 		  int ratio = 0;
@@ -2852,6 +2865,12 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 		  ::decode(lat, it);
 		  osd_latency[m->get_source().num()] = lat;
 		  cout << " latency osd "<<m->get_source().num()<<" "<<lat<< std:: endl;
+	  }
+	  if (!it.end() && (m->get_flags() & CEPH_OSD_OBJECT_QUERY_JOURNAL_THROTTLE)){
+		  int64_t journal_throttle = 0;
+		  ::decode(journal_throttle, it);
+		  osd_journal_throttle[m->get_source().num()] = journal_throttle;
+		  cout << " journal osd "<<m->get_source().num()<<" "<<journal_throttle<< std:: endl;
 	  }
   }
   
