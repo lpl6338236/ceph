@@ -132,6 +132,9 @@
 
 #include "include/assert.h"
 #include "common/config.h"
+#include "../common/debug.h"
+#include "../common/dout.h"
+#include "../messages/MOSDMarkMeDown.h"
 
 
 #ifdef WITH_LTTNG
