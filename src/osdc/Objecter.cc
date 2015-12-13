@@ -1815,7 +1815,7 @@ ceph_tid_t Objecter::_op_submit(Op *op, RWLock::Context& lc)
 
   int r_calc_target = _calc_target(&op->target);
   bool const check_for_latest_map = r_calc_target == RECALC_OP_TARGET_POOL_DNE;
-  if (pg_choice_num >= 1 && pg_choice_type != NULL && r_calc_target == RECALC_OP_TARGET_NEED_CHOOSE_PG){
+  if (pg_choice_num >= 1 && !pg_choice_type.empty() && r_calc_target == RECALC_OP_TARGET_NEED_CHOOSE_PG){
 	  unchosen_ops[op->target.target_oid].push_back(op);
 	  unfound_pg[op->target.target_oid] = 0;
 	  choose_pg(op);
