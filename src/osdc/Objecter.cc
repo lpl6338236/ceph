@@ -2706,7 +2706,7 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 				min = osd_full_ratio[osds[i]];
 			      }
 			    }
-			    cout << "best "<<best<<" full ratio " << osd_full_ratio[osds[best]] << " latency " << osd_latency[osds[best]]<<std::endl;
+			    //cout << "best "<<best<<" full ratio " << osd_full_ratio[osds[best]] << " latency " << osd_latency[osds[best]]<<std::endl;
 			  }
 			  else if (pg_choice_type == "journal"){
 			    best = 0;
@@ -2860,19 +2860,19 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 		  int ratio = 0;
 		  ::decode(ratio, it);
 		  osd_full_ratio[m->get_source().num()] = ratio;
-		  cout << " full_ratio from osd "<<m->get_source().num()<<" "<<ratio<< std:: endl;
+		  ldout(cct, 5) << " full_ratio from osd "<<m->get_source().num()<<" "<<ratio<< dendl;
 	  }
 	  if (!it.end() && (m->get_flags() & CEPH_OSD_OBJECT_QUERY_LATENCY)){
 		  double lat = 0;
 		  ::decode(lat, it);
 		  osd_latency[m->get_source().num()] = lat;
-		  cout << " latency osd "<<m->get_source().num()<<" "<<lat<< std:: endl;
+		  ldout(cct, 5) << " latency osd "<<m->get_source().num()<<" "<<lat<< dendl;
 	  }
 	  if (!it.end() && (m->get_flags() & CEPH_OSD_OBJECT_QUERY_JOURNAL_THROTTLE)){
 		  int64_t journal_throttle = 0;
 		  ::decode(journal_throttle, it);
 		  osd_journal_throttle[m->get_source().num()] = journal_throttle;
-		  cout << " journal osd "<<m->get_source().num()<<" "<<journal_throttle<< std:: endl;
+		  ldout(cct, 5) << " journal osd "<<m->get_source().num()<<" "<<journal_throttle<< dendl;
 	  }
   }
   
