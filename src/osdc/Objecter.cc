@@ -1789,6 +1789,7 @@ void Objecter::choose_pg(Op* op){
 
 		MOSDOp *m = NULL;
 		m = _prepare_osd_op(query);
+		m->set_priority(CEPH_MSG_PRIO_HIGHEST);
 		s->lock.get_write();
 		if (query->tid == 0)
 		    query->tid = last_tid.inc();
@@ -2650,30 +2651,26 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 			  }
                           else if (pg_choice_type == "even"){
                             best = 0;
-			    int default_osd = osds[0];
+			    int *chosen_times = new int[pg_choice_num]();
                             for (vector<int>:: iterator it = chosen_osds.begin(); it != chosen_osds.end(); it++){
                               if (*it == -1){
                                 break;
                               }
-                              for (int i = best; i < pg_choice_num; i++){
+                              for (int i = 0; i < pg_choice_num; i++){
                                 if (*it == osds[i]){
-                                  osds[i] = -1; 
+				  chosen_times[i]++;
                                 }
                               }
-                              while (osds[best] == -1 && best < pg_choice_num){                        
-                                best ++;
-                              }
-                              if (best >= pg_choice_num){
-                                best = 0;
-                                break;
-                              }
                             }
-                            if (osds[best] != -1) {
-			      chosen_osds[chosen_osds_ptr] = osds[best];
+			    int min = 1 << 30;
+			    for (int i = 0; i < pg_choice_num; i++){
+			      if (chosen_times[i] < min){
+				best = i;
+				min = chosen_times[i];
+			      }
 			    }
-			    else{
-			      chosen_osds[chosen_osds_ptr] = default_osd;
-			    }
+			    chosen_osds[chosen_osds_ptr] = osds[best];
+			    delete chosen_times;
 			    //cout << best << " " << osds[best] << " " << chosen_osds[chosen_osds_ptr] << "\n";
                             chosen_osds_ptr = (chosen_osds_ptr + 1) % chosen_osds.size();             
                           }
