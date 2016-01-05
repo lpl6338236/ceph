@@ -9757,10 +9757,12 @@ void ReplicatedPG::on_pool_change()
   hit_set_setup();
   agent_setup();
   if (osd->read_lat_window.size() != pool.info.pg_choice_lat_window_size){
-	  lock();
+    dout(20) << __func__ << " began resizing read_lat_window "
+	     << dendl;
 	  osd->read_lat_window.resize(pool.info.pg_choice_lat_window_size, 0);
 	  osd->read_lat_ptr = 0;
-	  unlock();
+    dout(20) << __func__ << " finished resizing read_lat_window "
+	     << dendl;
   }
 }
 

@@ -295,7 +295,7 @@ OPTION(pg_choice_num, OPT_INT, 0)
 OPTION(pg_choice_latency_threshold, OPT_DOUBLE, 0)
 OPTION(pg_choice_type, OPT_STR, "") 
 OPTION(pg_choice_window_size, OPT_INT, 0)
-OPTION(latency_window_size, OPT_INT, 0)
+OPTION(latency_window_size, OPT_INT, 1)
 
 OPTION(objecter_tick_interval, OPT_DOUBLE, 5.0)
 OPTION(objecter_timeout, OPT_DOUBLE, 10.0)    // before we ask for a map
