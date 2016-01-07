@@ -1284,7 +1284,7 @@ void OSDService::reply_op_error(OpRequestRef op, int err, eversion_t v,
 	  struct occupy *ncpu = new occupy[cpu_num];   //定义occupy结构体变量名是ncpu含10个元素
 	  
 	  get_occupy(ocpu, cpu_num);                       //调用get函数带回结构体数组第一次
-	  sleep(1);                               //等待1秒 
+	  usleep(1000);                               //等待1秒 
 	  get_occupy(ncpu, cpu_num);                       //调用get函数带回结构体数组第二次
 	  for (int i=0; i<cpu_num; i++)               //循环cpu_num-1次
 	  {
