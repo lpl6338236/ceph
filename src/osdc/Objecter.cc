@@ -1760,6 +1760,9 @@ void Objecter::choose_pg(Op* op){
 		else if (pg_choice_type == "journal")
 			query = new Op(op->target.target_oid, op->target.target_oloc, ops,
                 global_op_flags.read() | CEPH_OSD_FLAG_READ|CEPH_OSD_OBJECT_QUERY|CEPH_OSD_OBJECT_QUERY_JOURNAL_THROTTLE, 0, 0, NULL);
+		else if (pg_choice_type == "cpu")
+			query = new Op(op->target.target_oid, op->target.target_oloc, ops,
+                global_op_flags.read() | CEPH_OSD_FLAG_READ|CEPH_OSD_OBJECT_QUERY|CEPH_OSD_OBJECT_QUERY_CPU, 0, 0, NULL);
 		query->outbl = NULL;
 		query->snapid = CEPH_NOSNAP;
 		query->target.target_oid = query->target.base_oid;
@@ -2715,6 +2718,16 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 			      }
 			    }
 			  }
+			  else if (pg_choice_type == "cpu"){
+			    best = 0;
+			    double min = 100;
+			    for (int i = 0; i < pg_choice_num; i++){
+			      if (osd_cpu[osds[i]] < min){
+				best = i;
+				min = osd_cpu[osds[i]];
+			      }
+			    }
+			  }
                           pg_choice[m->get_oid()] = pgs[best];
 			  for (int i = 0; i < int(it->second.size()); i++){
 				  _op_submit(it->second[i], lc);
@@ -2851,7 +2864,7 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
   // per-op result demuxing
   vector<OSDOp> out_ops;
   m->claim_ops(out_ops);
-  if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_LATENCY | CEPH_OSD_OBJECT_QUERY_FULL_RATIO | CEPH_OSD_OBJECT_QUERY_JOURNAL_THROTTLE)){
+  if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_LATENCY | CEPH_OSD_OBJECT_QUERY_FULL_RATIO | CEPH_OSD_OBJECT_QUERY_JOURNAL_THROTTLE| CEPH_OSD_OBJECT_QUERY_CPU)){
       bufferlist::iterator it = out_ops[0].outdata.begin();
 	  if (!it.end() && (m->get_flags() & CEPH_OSD_OBJECT_QUERY_FULL_RATIO)){
 		  int ratio = 0;
@@ -2870,6 +2883,12 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 		  ::decode(journal_throttle, it);
 		  osd_journal_throttle[m->get_source().num()] = journal_throttle;
 		  ldout(cct, 5) << " journal osd "<<m->get_source().num()<<" "<<journal_throttle<< dendl;
+	  }
+	  if (!it.end() && (m->get_flags() & CEPH_OSD_OBJECT_QUERY_CPU)){
+		  double cpu = 0;
+		  ::decode(cpu, it);
+		  osd_cpu[m->get_source().num()] = cpu;
+		  ldout(cct, 5) << " cpu osd "<<m->get_source().num()<<" "<<cpu<< dendl;
 	  }
   }
   
