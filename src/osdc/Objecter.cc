@@ -1770,7 +1770,7 @@ void Objecter::choose_pg(Op* op){
 		query_ops[op->target.target_oid].push_back(query);
 		pg_t pgid;
 		if (i != 0) pgid = osdmap->raw_pg_to_pg(pg_t((op->target.pgid.m_seed + i + op->target.target_oid.name.at(op->target.target_oid.name.length() - 1)), op->target.pgid.m_pool));
-		else pgid = op->target.pgid;
+		else pgid = osdmap->raw_pg_to_pg(pg_t((op->target.pgid.m_seed ), op->target.pgid.m_pool));
 		query->target.pgid = pgid;
 		int up_primary, acting_primary;
 		vector<int> up, acting;
@@ -2654,17 +2654,13 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 			  }
                           else if (pg_choice_type == "even"){
                             best = 0;
-			    ldout(cct,5) << "even start"<<dendl;
 			    int *chosen_times = new int[pg_choice_num]();
-			    ldout(cct,5) << "create chosen_times"<<dendl;
                             for (vector<int>:: iterator it = chosen_osds.begin(); it != chosen_osds.end(); it++){
-			    ldout(cct,5) << "enter chosen_osds"<<dendl;
                               if (*it == -1){
                                 break;
                               }
                               for (int i = 0; i < pg_choice_num; i++){
                                 if (*it == osds[i]){
-			    ldout(cct,5) << "enter osds"<<dendl;
 				  chosen_times[i]++;
                                 }
                               }
@@ -2676,12 +2672,10 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 				min = chosen_times[i];
 			      }
 			    }
-			    ldout(cct,5) << "change chosen_osds"<<dendl;
 			    chosen_osds[chosen_osds_ptr] = osds[best];
 			    delete[] chosen_times;
 			    //cout << best << " " << osds[best] << " " << chosen_osds[chosen_osds_ptr] << "\n";
                             chosen_osds_ptr = (chosen_osds_ptr + 1) % chosen_osds.size();             
-			    ldout(cct,5) << "end even"<<dendl;
                           }
 			  else if (pg_choice_type == "space"){
 			    best = 0;
