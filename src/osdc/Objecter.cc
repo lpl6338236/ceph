@@ -2654,13 +2654,17 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 			  }
                           else if (pg_choice_type == "even"){
                             best = 0;
+			    ldout(cct,5) << "even start"<<dendl;
 			    int *chosen_times = new int[pg_choice_num]();
+			    ldout(cct,5) << "create chosen_times"<<dendl;
                             for (vector<int>:: iterator it = chosen_osds.begin(); it != chosen_osds.end(); it++){
+			    ldout(cct,5) << "enter chosen_osds"<<dendl;
                               if (*it == -1){
                                 break;
                               }
                               for (int i = 0; i < pg_choice_num; i++){
                                 if (*it == osds[i]){
+			    ldout(cct,5) << "enter osds"<<dendl;
 				  chosen_times[i]++;
                                 }
                               }
@@ -2672,10 +2676,12 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 				min = chosen_times[i];
 			      }
 			    }
+			    ldout(cct,5) << "change chosen_osds"<<dendl;
 			    chosen_osds[chosen_osds_ptr] = osds[best];
-			    delete chosen_times;
+			    delete[] chosen_times;
 			    //cout << best << " " << osds[best] << " " << chosen_osds[chosen_osds_ptr] << "\n";
                             chosen_osds_ptr = (chosen_osds_ptr + 1) % chosen_osds.size();             
+			    ldout(cct,5) << "end even"<<dendl;
                           }
 			  else if (pg_choice_type == "space"){
 			    best = 0;

@@ -2013,9 +2013,9 @@ void ReplicatedPG::log_op_stats(OpContext *ctx)
   osd->logger->inc(l_osd_op_inb, inb);
   osd->logger->tinc(l_osd_op_lat, latency);
   osd->logger->tinc(l_osd_op_process_lat, process_latency);
-  if (osd->read_lat_window.size() > 0){
-	  osd->read_lat_window[osd->read_lat_ptr] = (double)latency;
-	  osd->read_lat_ptr = (osd->read_lat_ptr + 1) % osd->read_lat_window.size();
+  if (read_lat_window.size() > 0){
+	  read_lat_window[read_lat_ptr] = (double)latency;
+	  read_lat_ptr = (read_lat_ptr + 1) % read_lat_window.size();
   }
 
   if (op->may_read() && op->may_write()) {
@@ -9756,11 +9756,11 @@ void ReplicatedPG::on_pool_change()
   }
   hit_set_setup();
   agent_setup();
-  if (osd->read_lat_window.size() != pool.info.pg_choice_lat_window_size){
+  if (read_lat_window.size() != pool.info.pg_choice_lat_window_size){
     dout(20) << __func__ << " began resizing read_lat_window "
 	     << dendl;
-	  osd->read_lat_window.resize(pool.info.pg_choice_lat_window_size, 0);
-	  osd->read_lat_ptr = 0;
+	  read_lat_window.resize(pool.info.pg_choice_lat_window_size, 0);
+	  read_lat_ptr = 0;
     dout(20) << __func__ << " finished resizing read_lat_window "
 	     << dendl;
   }
