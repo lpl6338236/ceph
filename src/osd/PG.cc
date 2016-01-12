@@ -208,8 +208,6 @@ PG::PG(OSDService *o, OSDMapRef curmap,
 #ifdef PG_DEBUG_REFS
   osd->add_pgid(p, this);
 #endif
-  read_lat_window.resize(cct->_conf->latency_window_size, 0);
-  read_lat_ptr = 0;
 }
 
 PG::~PG()
