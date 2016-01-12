@@ -1671,12 +1671,7 @@ public:
 	if (cct->_conf->pg_choice_window_size != 0 ) {
             chosen_osds.resize(cct->_conf->pg_choice_window_size, -1);
             chosen_osds_ptr = 0;
-        }
-	else{
-            chosen_osds.resize(1, -1);
-            chosen_osds_ptr = 0;
-	}
-
+          }
     }	
   ~Objecter();
 

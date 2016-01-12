@@ -1263,7 +1263,7 @@ void OSDService::reply_op_error(OpRequestRef op, int err, eversion_t v,
   }
   if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_LATENCY)){
 	  double lat = 0;
-	  vector<double> read_lat_window = (osd->pg_map[spg_t(m->get_pg())])->read_lat_window;
+	  vector<double> read_lat_window = (osd->pg_map[m->get_pg()])->read_lat_window;
 	  for (vector<double>::iterator it = read_lat_window.begin(); it != read_lat_window.end();it++){
 		  lat += *it;
 	  }
