@@ -2696,6 +2696,7 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 				min = osd_latency[osds[i]];
 			      }
 			    }
+			    ldout(cct, 5) << " choose osd "<<osds[best]<<" latency " << osd_latency[osds[best]] <<dendl;
 			  }
 			  else if (pg_choice_type == "mix_lat_space"){
 			    best = 0;
@@ -2706,7 +2707,7 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 				min = osd_full_ratio[osds[i]];
 			      }
 			    }
-			    //cout << "best "<<best<<" full ratio " << osd_full_ratio[osds[best]] << " latency " << osd_latency[osds[best]]<<std::endl;
+			    ldout(cct, 5) << "best "<<best<<" full ratio " << osd_full_ratio[osds[best]] << " latency " << osd_latency[osds[best]]<<dendl;
 			  }
 			  else if (pg_choice_type == "journal"){
 			    best = 0;
@@ -2717,6 +2718,7 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 				min = osd_journal_throttle[osds[i]];
 			      }
 			    }
+			    ldout(cct, 5) << " choose osd "<<osds[best]<<" journal " << osd_latency[osds[best]] <<dendl;
 			  }
 			  else if (pg_choice_type == "cpu"){
 			    best = 0;
@@ -2727,6 +2729,7 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 				min = osd_cpu[osds[i]];
 			      }
 			    }
+			    ldout(cct, 5) << " choose osd "<<osds[best]<<" cpu ratio " << osd_cpu[osds[best]] <<dendl;
 			  }
                           pg_choice[m->get_oid()] = pgs[best];
 			  for (int i = 0; i < int(it->second.size()); i++){
