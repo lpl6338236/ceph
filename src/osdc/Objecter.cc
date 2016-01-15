@@ -2719,7 +2719,7 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 			  }
 			  else if (pg_choice_type == "latency"){
 			    best = 0;
-			    int min = 1<<30;
+			    double min = 1<<30;
 			    for (int i = 0; i < pg_choice_num; i++){
 			      if (osd_latency[osds[i]] < min){
 				best = i;
