@@ -1315,7 +1315,7 @@ void OSDService::reply_op_error(OpRequestRef op, int err, eversion_t v,
     }
     ::encode(mem_used, m->ops[0].outdata);
   }
-  if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_FULL_RATIO | CEPH_OSD_OBJECT_QUERY_LATENCY | CEPH_OSD_OBJECT_QUERY_JOURNAL_THROTTLE| CEPH_OSD_OBJECT_QUERY_CPU)){
+  if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_FULL_RATIO | CEPH_OSD_OBJECT_QUERY_LATENCY | CEPH_OSD_OBJECT_QUERY_JOURNAL_THROTTLE| CEPH_OSD_OBJECT_QUERY_CPU|CEPH_OSD_OBJECT_QUERY_MEM)){
     reply->claim_op_out_data(m->ops);
   }
   reply->set_reply_versions(v, uv);
