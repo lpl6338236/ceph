@@ -1763,6 +1763,9 @@ void Objecter::choose_pg(Op* op){
 		else if (pg_choice_type == "cpu")
 			query = new Op(op->target.target_oid, op->target.target_oloc, ops,
                 global_op_flags.read() | CEPH_OSD_FLAG_READ|CEPH_OSD_OBJECT_QUERY|CEPH_OSD_OBJECT_QUERY_CPU, 0, 0, NULL);
+		else if (pg_choice_type == "mem")
+			query = new Op(op->target.target_oid, op->target.target_oloc, ops,
+                global_op_flags.read() | CEPH_OSD_FLAG_READ|CEPH_OSD_OBJECT_QUERY|CEPH_OSD_OBJECT_QUERY_MEM, 0, 0, NULL);
 		query->outbl = NULL;
 		query->snapid = CEPH_NOSNAP;
 		query->target.target_oid = query->target.base_oid;
@@ -2616,7 +2619,7 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
   // per-op result demuxing
   vector<OSDOp> out_ops;
   m->claim_ops(out_ops);
-  if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_LATENCY | CEPH_OSD_OBJECT_QUERY_FULL_RATIO | CEPH_OSD_OBJECT_QUERY_JOURNAL_THROTTLE| CEPH_OSD_OBJECT_QUERY_CPU)){
+  if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_LATENCY | CEPH_OSD_OBJECT_QUERY_FULL_RATIO | CEPH_OSD_OBJECT_QUERY_JOURNAL_THROTTLE| CEPH_OSD_OBJECT_QUERY_CPU|CEPH_OSD_OBJECT_QUERY_MEM)){
       bufferlist::iterator it = out_ops[0].outdata.begin();
 	  if (!it.end() && (m->get_flags() & CEPH_OSD_OBJECT_QUERY_FULL_RATIO)){
 		  int ratio = 0;
@@ -2641,6 +2644,12 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 		  ::decode(cpu, it);
 		  osd_cpu[m->get_source().num()] = cpu;
 		  ldout(cct, 5) << " cpu osd "<<m->get_source().num()<<" "<<cpu<< dendl;
+	  }
+	  if (!it.end() && (m->get_flags() & CEPH_OSD_OBJECT_QUERY_MEM)){
+		  double mem = 0;
+		  ::decode(mem, it);
+		  osd_mem[m->get_source().num()] = mem;
+		  ldout(cct, 5) << " cpu mem "<<m->get_source().num()<<" "<<mem<< dendl;
 	  }
   }
 
@@ -2760,6 +2769,17 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 			      }
 			    }
 			    ldout(cct, 5) << " choose osd "<<osds[best]<<" cpu ratio " << osd_cpu[osds[best]] <<dendl;
+			  }
+			  else if (pg_choice_type == "mem"){
+			    best = 0;
+			    double min = 100;
+			    for (int i = 0; i < pg_choice_num; i++){
+			      if (osd_mem[osds[i]] < min){
+				best = i;
+				min = osd_mem[osds[i]];
+			      }
+			    }
+			    ldout(cct, 5) << " choose osd "<<osds[best]<<" free mem " << osd_mem[osds[best]] <<dendl;
 			  }
                           pg_choice[m->get_oid()] = pgs[best];
 			  for (int i = 0; i < int(it->second.size()); i++){

@@ -1010,6 +1010,7 @@ public:
   ceph::unordered_map<int, int> osd_full_ratio;
   ceph::unordered_map<int, int64_t> osd_journal_throttle;
   ceph::unordered_map<int, double> osd_cpu;
+  ceph::unordered_map<int, double> osd_mem;
   std::vector<int> chosen_osds; 
   int chosen_osds_ptr;
 
