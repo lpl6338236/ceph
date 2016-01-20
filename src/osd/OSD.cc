@@ -1303,15 +1303,18 @@ void OSDService::reply_op_error(OpRequestRef op, int err, eversion_t v,
     long long inc;
 
     fd = fopen("/proc/meminfo", "r");
-    while (!feof(fd)){
-      char *line = fgets(buff, sizeof(buff), fd);
-      if (!line) break;
-      int r = sscanf(buff, "%s %lld", name, &inc);
-      if (r == 2){
-	if (strcmp(name, "MemFree:") == 0 || strcmp(name, "Buffers:") == 0 || strcmp(name, "Cached:") == 0){
-	  mem_used += inc;
+    if (fd){
+      while (!feof(fd)){
+	char *line = fgets(buff, sizeof(buff), fd);
+	if (!line) break;
+	int r = sscanf(buff, "%s %lld", name, &inc);
+	if (r == 2){
+	  if (strcmp(name, "MemFree:") == 0 || strcmp(name, "Buffers:") == 0 || strcmp(name, "Cached:") == 0){
+	    mem_used += inc;
+	  }
 	}
       }
+      fclose(fd);
     }
     ::encode(mem_used, m->ops[0].outdata);
   }
