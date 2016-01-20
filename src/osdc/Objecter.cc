@@ -2772,11 +2772,11 @@ void Objecter::handle_osd_op_reply(MOSDOpReply *m)
 			  }
 			  else if (pg_choice_type == "mem"){
 			    best = 0;
-			    double min = 100;
+			    double max = 0;
 			    for (int i = 0; i < pg_choice_num; i++){
-			      if (osd_mem[osds[i]] < min){
+			      if (osd_mem[osds[i]] > max){
 				best = i;
-				min = osd_mem[osds[i]];
+				max = osd_mem[osds[i]];
 			      }
 			    }
 			    ldout(cct, 5) << " choose osd "<<osds[best]<<" free mem " << osd_mem[osds[best]] <<dendl;

@@ -1299,20 +1299,19 @@ void OSDService::reply_op_error(OpRequestRef op, int err, eversion_t v,
     double mem_used = 0;
     FILE* fd;
     char buff[256];
-    char name[20], name2[20];
-    double inc;
+    char name[40];
+    long long inc;
 
     fd = fopen("/proc/meminfo", "r");
-    fgets(buff, sizeof(buff), fd);
-    fgets(buff, sizeof(buff), fd);
-    sscanf(buff, "%s %lf %s", name, &inc, name2);
-    mem_used += inc;
-    fgets(buff, sizeof(buff), fd);
-    sscanf(buff, "%s %lf %s", name, &inc, name2);
-    mem_used += inc;
-    fgets(buff, sizeof(buff), fd);
-    sscanf(buff, "%s %lf %s", name, &inc, name2);
-    mem_used += inc;
+    while (!feof(fd)){
+      char *line = fgets(buff, sizeof(buff), fd);
+      if (!line) break;
+      int r = sscanf(buff, "%s %lld", name, &inc);
+      if (r == 2){
+	if (strcmp(name, "MemFree:") == 0 || strcmp(name, "Buffers:") == 0 || strcmp(name, "Cached:" == 0)){
+	  mem_used += inc;
+	}
+      }
     ::encode(mem_used, m->ops[0].outdata);
   }
   if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_FULL_RATIO | CEPH_OSD_OBJECT_QUERY_LATENCY | CEPH_OSD_OBJECT_QUERY_JOURNAL_THROTTLE| CEPH_OSD_OBJECT_QUERY_CPU)){
