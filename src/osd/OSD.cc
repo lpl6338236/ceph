@@ -1308,10 +1308,11 @@ void OSDService::reply_op_error(OpRequestRef op, int err, eversion_t v,
       if (!line) break;
       int r = sscanf(buff, "%s %lld", name, &inc);
       if (r == 2){
-	if (strcmp(name, "MemFree:") == 0 || strcmp(name, "Buffers:") == 0 || strcmp(name, "Cached:" == 0)){
+	if (strcmp(name, "MemFree:") == 0 || strcmp(name, "Buffers:") == 0 || strcmp(name, "Cached:") == 0){
 	  mem_used += inc;
 	}
       }
+    }
     ::encode(mem_used, m->ops[0].outdata);
   }
   if (m->get_flags() & (CEPH_OSD_OBJECT_QUERY_FULL_RATIO | CEPH_OSD_OBJECT_QUERY_LATENCY | CEPH_OSD_OBJECT_QUERY_JOURNAL_THROTTLE| CEPH_OSD_OBJECT_QUERY_CPU)){
